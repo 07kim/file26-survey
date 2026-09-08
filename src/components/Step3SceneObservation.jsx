@@ -118,10 +118,12 @@ export default function Step3SceneObservation({ formData, updateFormData, onNext
                                     src={c.avatar}
                                     alt={c.name}
                                     title={c.name}
-                                    className="w-8 h-8 rounded-full object-cover border-2 border-slate-300 shadow-md"
+                                    className="rounded-full object-cover border-2 border-slate-300 shadow-md"
                                     style={{
+                                      width: '52px',
+                                      height: '52px',
                                       objectPosition: 'center 15%',
-                                      marginLeft: idx > 0 ? '-8px' : '0',
+                                      marginLeft: idx > 0 ? '-18px' : '0',
                                       zIndex: item.casts.length - idx
                                     }}
                                   />
