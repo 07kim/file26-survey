@@ -285,40 +285,42 @@ export const SCENES = [
       { id: "1g", time: "9分", place: "討議室3", title: "行方", desc: "謎の男女の会話" },
       { id: "1h", time: "10分", place: "研修室3", title: "確認", desc: "2人の会話" },
       { id: "1i", time: "13分", place: "討議室2", title: "疑問", desc: "七瀬を追って" },
-      { id: "1j", time: "13分", place: "研修室1", title: "推理", desc: "渡辺の推理" },
-      { id: "1k", time: "15分", place: "研修室2", title: "衝撃", desc: "4人の接触" },
-      { id: "1l", time: "18分", place: "研修室2", title: "独白", desc: "謎の男の独白" },
+      { id: "1j", time: "13分", place: "研修室2", title: "推理", desc: "渡辺の推理" },
+      { id: "1k", time: "15分", place: "研修室4", title: "衝撃", desc: "4人の接触" },
+      { id: "1l", time: "18分", place: "研修室1", title: "独白", desc: "謎の男の独白" },
       { id: "1m", time: "18分", place: "討議室4", title: "ノート", desc: "鷺坂とノート" },
       { id: "1n", time: "18分", place: "研修室4", title: "将来", desc: "純粋な下山田" },
       { id: "1o", time: "21分", place: "討議室4", title: "森野", desc: "その場に留まる" },
-      { id: "1p", time: "23分", place: "研修室1", title: "微熱と心残り", desc: "櫻井と渡辺の会話" },
+      { id: "1p", time: "23分", place: "研修室2", title: "微熱と心残り", desc: "櫻井と渡辺の会話" },
       { id: "1q", time: "25分", place: "研修室4", title: "手", desc: "…………" },
       { id: "1r", time: "26分", place: "研修室3", title: "完了", desc: "3人の動き" }
     ]
   },
   {
     loop: "2周目",
-    label: "捩れた運命",
+    label: "再帰",
     items: [
-      { id: "2a", time: "0分", place: "大ホール", title: "捩れた運命", desc: "再度、謎の現象に" },
+      { id: "2a", time: "0分", place: "大ホール", title: "再帰", desc: "再度、9時4分" },
       { id: "2b", time: "1分", place: "研修室1", title: "会議", desc: "扉が開いてすぐ" },
       { id: "2c", time: "3分", place: "研修室1", title: "相談", desc: "矢田を追って" },
-      { id: "2d", time: "3分", place: "研修室2", title: "後悔", desc: "櫻井・渡辺を追って" },
-      { id: "2e", time: "4分", place: "研修室4", title: "まさか", desc: "下山田の行く末" },
-      { id: "2f", time: "7分", place: "研修室3", title: "接触", desc: "下山田の行く末" },
-      { id: "2g", time: "8分", place: "討議室1", title: "正体", desc: "櫻井を追う" },
-      { id: "2h", time: "10分", place: "研修室4", title: "削除", desc: "下山田の行く末" },
-      { id: "2i", time: "11分", place: "討議室1", title: "自分の道", desc: "櫻井の結論" }
+      { id: "2d", time: "3分", place: "討議室1", title: "再燃", desc: "櫻井を追う" },
+      { id: "2e", time: "3分", place: "研修室4", title: "資料", desc: "下山田に注意して" },
+      { id: "2f", time: "18分", place: "大ホール", title: "別れ", desc: "ついに、、、" }
     ]
   },
   {
     loop: "3周目",
-    label: "再帰、そして",
+    label: "捩れた運命",
     items: [
-      { id: "3a", time: "0分", place: "大ホール", title: "再帰", desc: "三たび、9時4分" },
-      { id: "3b", time: "3分", place: "討議室1", title: "再燃", desc: "櫻井を追う" },
-      { id: "3c", time: "3分", place: "研修室4", title: "資料", desc: "下山田に注意して" },
-      { id: "3d", time: "18分", place: "大ホール", title: "別れ", desc: "ついに、、、" }
+      { id: "3a", time: "0分", place: "大ホール", title: "捩れた運命", desc: "三たび、謎の現象に" },
+      { id: "3b", time: "1分", place: "研修室1", title: "会議", desc: "扉が開いてすぐ" },
+      { id: "3c", time: "3分", place: "研修室1", title: "相談", desc: "矢田を追って" },
+      { id: "3d", time: "3分", place: "研修室2", title: "後悔", desc: "櫻井・渡辺を追って" },
+      { id: "3e", time: "8分", place: "討議室1", title: "招待", desc: "櫻井を追う" },
+      { id: "3f", time: "11分", place: "討議室1", title: "自分の道", desc: "櫻井の結論" },
+      { id: "3g", time: "4分", place: "研修室4", title: "まさか", desc: "下山田の行く末" },
+      { id: "3h", time: "7分", place: "研修室3", title: "接触", desc: "下山田の行く末" },
+      { id: "3i", time: "10分", place: "研修室4", title: "削除", desc: "下山田の行く末" }
     ]
   }
 ];
