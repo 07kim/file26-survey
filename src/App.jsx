@@ -192,6 +192,37 @@ const parseOptionWithOther = (raw) => {
   return { value: s, other: '' };
 };
 
+// characterCommentsからテキスト文字列と非公開フラグを安全に抽出
+export const getCommentText = (val) => {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object' && val.text !== undefined) return String(val.text || '');
+  return String(val);
+};
+
+export const getCommentIsPrivate = (val, fallback = false) => {
+  if (typeof val === 'object' && val !== null && val.isPrivate !== undefined) {
+    return Boolean(val.isPrivate);
+  }
+  return Boolean(fallback);
+};
+
+// answers内のcharacterCommentsとcharacterPrivateFlagsを常に正規化
+export const sanitizeCharacterData = (rawComments = {}, rawFlags = {}) => {
+  const cleanComments = {};
+  const cleanFlags = { ...(rawFlags || {}) };
+
+  if (rawComments && typeof rawComments === 'object') {
+    Object.entries(rawComments).forEach(([cid, val]) => {
+      cleanComments[cid] = getCommentText(val);
+      if (typeof val === 'object' && val !== null && val.isPrivate !== undefined) {
+        cleanFlags[cid] = Boolean(val.isPrivate);
+      }
+    });
+  }
+  return { comments: cleanComments, flags: cleanFlags };
+};
+
 export default function App() {
   // 回答状態（localStorageから自動復元：最新の編集内容を最優先で復元）
   const [answers, setAnswers] = useState(() => {
@@ -203,6 +234,7 @@ export default function App() {
         const gradeParsed = parseOptionWithOther(parsed.grade);
         const lengthParsed = parseOptionWithOther(parsed.length);
         const againParsed = parseOptionWithOther(parsed.again);
+        const charData = sanitizeCharacterData(parsed.characterComments, parsed.characterPrivateFlags);
         return {
           ...DEFAULT_ANSWERS,
           ...parsed,
@@ -215,6 +247,8 @@ export default function App() {
           matrix: parseMatrixData(parsed.matrix),
           futureRoles: roles.length > 0 ? roles : (Array.isArray(parsed.futureRoles) ? parsed.futureRoles : []),
           futureRolesOther: parsed.futureRolesOther || other || '',
+          characterComments: charData.comments,
+          characterPrivateFlags: charData.flags,
           overall: parsed.overall !== undefined && parsed.overall !== null && parsed.overall !== '' ? Number(parsed.overall) : 50
         };
       }
@@ -225,6 +259,7 @@ export default function App() {
         const gradeParsed = parseOptionWithOther(parsed.grade);
         const lengthParsed = parseOptionWithOther(parsed.length);
         const againParsed = parseOptionWithOther(parsed.again);
+        const charData = sanitizeCharacterData(parsed.characterComments, parsed.characterPrivateFlags);
         return {
           ...DEFAULT_ANSWERS,
           ...parsed,
@@ -237,6 +272,8 @@ export default function App() {
           matrix: parseMatrixData(parsed.matrix),
           futureRoles: roles.length > 0 ? roles : (Array.isArray(parsed.futureRoles) ? parsed.futureRoles : []),
           futureRolesOther: parsed.futureRolesOther || other || '',
+          characterComments: charData.comments,
+          characterPrivateFlags: charData.flags,
           overall: parsed.overall !== undefined && parsed.overall !== null && parsed.overall !== '' ? Number(parsed.overall) : 50
         };
       }
@@ -364,7 +401,8 @@ export default function App() {
           word: found.word || '',
           improve: found.improve || '',
           msg: found.msg || '',
-          characterComments: found.characterComments || {},
+          characterComments: sanitizeCharacterData(found.characterComments, found.characterPrivateFlags).comments,
+          characterPrivateFlags: sanitizeCharacterData(found.characterComments, found.characterPrivateFlags).flags,
           favoriteCast: findCastIdByName(found.favoriteCast) || found.favoriteCast || '',
           hp: ''
         };
@@ -383,12 +421,15 @@ export default function App() {
         const draft = await sheetApi.getDraft(userEmail);
         if (draft && draft.answers && typeof draft.answers === 'object') {
           const draftRoles = parseFutureRolesData(draft.answers.futureRoles);
+          const draftCharData = sanitizeCharacterData(draft.answers.characterComments, draft.answers.characterPrivateFlags);
           const sanitizedDraft = {
             ...DEFAULT_ANSWERS,
             ...draft.answers,
             matrix: parseMatrixData(draft.answers.matrix),
             futureRoles: draftRoles.roles.length > 0 ? draftRoles.roles : (Array.isArray(draft.answers.futureRoles) ? draft.answers.futureRoles : []),
             futureRolesOther: draft.answers.futureRolesOther || draftRoles.other || '',
+            characterComments: draftCharData.comments,
+            characterPrivateFlags: draftCharData.flags,
             overall: draft.answers.overall !== undefined && draft.answers.overall !== null && draft.answers.overall !== '' ? Number(draft.answers.overall) : 50
           };
           setStep(currentStep => {
@@ -678,6 +719,7 @@ export default function App() {
     const miss = validate(step);
     if (miss) {
       setWarnMsg(miss);
+      showToast(`⚠️ ${miss}`);
       setIsShake(true);
       setTimeout(() => setIsShake(false), 420);
       return;
@@ -2189,8 +2231,8 @@ export default function App() {
                 {answers.favoriteCast && (() => {
                   const favP = CAST_MEMBERS.find(c => c.id === answers.favoriteCast);
                   if (!favP) return null;
-                  const favVal = answers.characterComments?.[favP.id] || '';
-                  const isFavPrivate = !!answers.characterPrivateFlags?.[favP.id];
+                  const favVal = getCommentText(answers.characterComments?.[favP.id]);
+                  const isFavPrivate = getCommentIsPrivate(answers.characterComments?.[favP.id], answers.characterPrivateFlags?.[favP.id]);
 
                   return (
                     <div style={{
@@ -2234,7 +2276,7 @@ export default function App() {
                               ...prev,
                               characterPrivateFlags: {
                                 ...prev.characterPrivateFlags,
-                                [favP.id]: !prev.characterPrivateFlags?.[favP.id]
+                                [favP.id]: !getCommentIsPrivate(prev.characterComments?.[favP.id], prev.characterPrivateFlags?.[favP.id])
                               }
                             }));
                           }}
@@ -2341,10 +2383,10 @@ export default function App() {
                   <div className="char-comment-grid">
                     {SELECTABLE_PEOPLE.filter(p => p.id !== 'sound' && p.id !== 'free').map(p => {
                       const isActive = (activeCommentChar || answers.favoriteCast || answers.loop1 || 'yada') === p.id;
-                      const hasText = !!answers.characterComments?.[p.id]?.trim();
+                      const hasText = !!getCommentText(answers.characterComments?.[p.id]).trim();
                       const isFav = answers.favoriteCast === p.id;
                       const isTracked = answers.loop1 === p.id || answers.loop2 === p.id || answers.loop3 === p.id;
-                      const isPrivate = !!answers.characterPrivateFlags?.[p.id];
+                      const isPrivate = getCommentIsPrivate(answers.characterComments?.[p.id], answers.characterPrivateFlags?.[p.id]);
                       
                       return (
                         <div
@@ -2373,8 +2415,8 @@ export default function App() {
                   {(() => {
                     const curCharId = activeCommentChar || answers.favoriteCast || answers.loop1 || 'yada';
                     const curChar = CAST_MEMBERS.find(c => c.id === curCharId) || CAST_MEMBERS[0];
-                    const val = answers.characterComments?.[curCharId] || '';
-                    const isPrivate = !!answers.characterPrivateFlags?.[curCharId];
+                    const val = getCommentText(answers.characterComments?.[curCharId]);
+                    const isPrivate = getCommentIsPrivate(answers.characterComments?.[curCharId], answers.characterPrivateFlags?.[curCharId]);
 
                     return (
                       <div className="char-input-card" style={isPrivate ? { borderColor: 'rgba(244, 63, 94, 0.55)', background: 'rgba(15, 23, 42, 0.95)', boxShadow: '0 4px 16px rgba(225, 29, 72, 0.15)' } : {}}>
@@ -2397,7 +2439,7 @@ export default function App() {
                                 ...prev,
                                 characterPrivateFlags: {
                                   ...prev.characterPrivateFlags,
-                                  [curCharId]: !prev.characterPrivateFlags?.[curCharId]
+                                  [curCharId]: !getCommentIsPrivate(prev.characterComments?.[curCharId], prev.characterPrivateFlags?.[curCharId])
                                 }
                               }));
                             }}
@@ -2485,14 +2527,14 @@ export default function App() {
 
                   {/* 記入済みキャラクターのサマリー */}
                   {(() => {
-                    const writtenKeys = Object.keys(answers.characterComments || {}).filter(k => !!answers.characterComments[k]?.trim());
+                    const writtenKeys = Object.keys(answers.characterComments || {}).filter(k => !!getCommentText(answers.characterComments[k]).trim());
                     if (writtenKeys.length === 0) return null;
                     return (
                       <div className="char-written-summary">
                         <span>◈ 記入済み（{writtenKeys.length}名）：</span>
                         {writtenKeys.map(k => {
                           const c = CAST_MEMBERS.find(x => x.id === k);
-                          const isPriv = !!answers.characterPrivateFlags?.[k];
+                          const isPriv = getCommentIsPrivate(answers.characterComments?.[k], answers.characterPrivateFlags?.[k]);
                           return (
                             <span key={k} className="char-written-pill" onClick={() => setActiveCommentChar(k)} style={{ cursor: 'pointer', border: isPriv ? '1px solid rgba(244,63,94,0.45)' : undefined, background: isPriv ? 'rgba(225,29,72,0.15)' : undefined }}>
                               {isPriv ? '🔒 ' : '🌐 '}{c ? c.name.split(' ')[0] : k} ✎
