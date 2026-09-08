@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ShieldAlert, FileText, MessageCircle, Layers, Edit3, Clock, ScrollText, Share2, Check, Award, ShieldCheck, User, LogOut, Lock, AlertCircle } from 'lucide-react';
+import { ShieldAlert, FileText, MessageCircle, Layers, Edit3, Clock, ScrollText, Check, Award, ShieldCheck, User, LogOut, Lock, AlertCircle } from 'lucide-react';
 import { getStoredUser, logoutGoogleUser, parseJwt, saveGoogleUser, getActiveClientId } from '../utils/googleAuth';
 import BugReportModal from './BugReportModal';
 
 export default function Header({ currentStep, totalSteps, currentTab, setTab, onEasterEgg, isUnlocked = true }) {
   const [tapCount, setTapCount] = useState(0);
   const [glitchActive, setGlitchActive] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [googleUser, setGoogleUser] = useState(() => getStoredUser());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isBugModalOpen, setIsBugModalOpen] = useState(false);
@@ -78,25 +77,6 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
         setGlitchActive(false);
         setTapCount(0);
       }, 3000);
-    }
-  };
-
-  const handleShareDirectLink = () => {
-    const targetTab = currentTab === 'survey' ? 'crosstalk' : currentTab;
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', targetTab);
-    
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(url.toString()).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
-      }).catch(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
-      });
-    } else {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
     }
   };
 
@@ -176,20 +156,6 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
             >
               <AlertCircle className="w-3 h-3 text-amber-600" />
               <span>バグ報告</span>
-            </button>
-
-            {/* 共有ボタン */}
-            <button
-              type="button"
-              onClick={handleShareDirectLink}
-              title="リンクをコピー"
-              className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-                copied
-                  ? 'bg-emerald-50 border-emerald-400 text-emerald-600'
-                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5 text-[#0284c7]" />}
             </button>
           </div>
         </div>
@@ -314,29 +280,6 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
           >
             <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
             <span>バグ報告</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleShareDirectLink}
-            title="このコミュニティページの直接URLをコピー"
-            className={`px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
-              copied
-                ? 'bg-emerald-50 border-emerald-400 text-emerald-700 shadow-xs'
-                : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-[#b8352f] hover:bg-slate-100'
-            }`}
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span>直通リンクをコピー済</span>
-              </>
-            ) : (
-              <>
-                <Share2 className="w-3.5 h-3.5 text-[#0284c7]" />
-                <span>直通共有</span>
-              </>
-            )}
           </button>
         </div>
       </div>
