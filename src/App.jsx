@@ -1140,6 +1140,7 @@ export default function App() {
                   type="text"
                   value={answers.realName}
                   onChange={(e) => setAnswers(prev => ({ ...prev, realName: e.target.value }))}
+                  placeholder="例）山田 太郎"
                   maxLength="50"
                 />
 
@@ -1162,6 +1163,7 @@ export default function App() {
                       type="text"
                       value={answers.gradeOther}
                       onChange={(e) => setAnswers(prev => ({ ...prev, gradeOther: e.target.value }))}
+                      placeholder="例）大学院生、一般、卒業生 など"
                       maxLength="50"
                     />
                   </div>
@@ -1400,6 +1402,7 @@ export default function App() {
                       rows="3"
                       value={answers.routeComment || ''}
                       onChange={(e) => setAnswers(prev => ({ ...prev, routeComment: e.target.value }))}
+                      placeholder="例）1周目と2周目で視点が変わって面白かった / この順番で追ったことで物語の裏側が分かった など"
                       style={{
                         width: '100%',
                         background: 'rgba(0, 0, 0, 0.7)',
@@ -1966,6 +1969,7 @@ export default function App() {
                     const val = e.target.value;
                     setAnswers(prev => ({ ...prev, msg: val, privateImpressions: val }));
                   }}
+                  placeholder="例）キャスト・スタッフの皆様へのお礼や、個人的に印象に残ったことなどをご自由にお書きください"
                 ></textarea>
 
                 {/* Q16: 公開用の感想（タイトル & 自由記述） */}
@@ -1988,6 +1992,7 @@ export default function App() {
                     type="text"
                     value={answers.word}
                     onChange={(e) => setAnswers(prev => ({ ...prev, word: e.target.value }))}
+                    placeholder="例）印象に残った一言や、感想のタイトル"
                     maxLength="80"
                   />
                 </div>
@@ -2001,6 +2006,7 @@ export default function App() {
                     rows="4"
                     value={answers.impressions}
                     onChange={(e) => setAnswers(prev => ({ ...prev, impressions: e.target.value }))}
+                    placeholder="例）全体の感想や物語の所感など、自由に感じたことをお書きください"
                   ></textarea>
                 </div>
 
@@ -2018,6 +2024,7 @@ export default function App() {
                   rows="3"
                   value={answers.best}
                   onChange={(e) => setAnswers(prev => ({ ...prev, best: e.target.value }))}
+                  placeholder="例）特に心に残ったシーンやセリフがあればご記入ください"
                 ></textarea>
 
                 {/* Q18: もっとこうしてほしかったこと（非公開） */}
@@ -2034,6 +2041,7 @@ export default function App() {
                   rows="3"
                   value={answers.improve}
                   onChange={(e) => setAnswers(prev => ({ ...prev, improve: e.target.value }))}
+                  placeholder="例）運営や進行面で気になった点や改善点があればお書きください（特になければ空欄でOK）"
                 ></textarea>
 
                 {/* ◈ 最重要観測対象（推し人物） */}
@@ -2124,6 +2132,7 @@ export default function App() {
                             }
                           }));
                         }}
+                        placeholder={`【${favP.name}】へのメッセージや印象に残ったことなどをご自由にどうぞ`}
                         style={{
                           width: '100%',
                           background: 'rgba(0, 0, 0, 0.7)',
@@ -2211,6 +2220,7 @@ export default function App() {
                               }
                             }));
                           }}
+                        placeholder={`【${curChar.name}】への一言や印象に残ったことなど`}
                         style={{ marginTop: '4px', fontFamily: 'var(--mincho)', color: '#fffbeb', lineHeight: 1.7 }}
                       ></textarea>
                       </div>
@@ -2269,7 +2279,7 @@ export default function App() {
                     type="text"
                     value={answers.name}
                     onChange={(e) => setAnswers(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="ニックネームを入力"
+                    placeholder="例）タロウ"
                     maxLength="40"
                   />
                 </div>
