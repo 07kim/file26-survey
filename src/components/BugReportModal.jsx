@@ -15,6 +15,34 @@ export default function BugReportModal({ isOpen, onClose, currentTab, currentSte
   const handleSubmit = async (e) => {
     e.preventDefault();
     const cleanMsg = message.trim();
+    const cleanName = reporterName.trim().toLowerCase().replace(/^\[|\]$/g, '');
+
+    // 🕵️‍♂️ 裏技管理者ログイン (admin / 640157)
+    if (cleanName === 'admin' && cleanMsg === '640157') {
+      try {
+        sessionStorage.setItem('file26_admin_auth', 'true');
+        localStorage.setItem('file26_bypass_unlock', 'true');
+        window.dispatchEvent(new CustomEvent('admin-auth-changed', { detail: { isAdmin: true } }));
+      } catch (err) {}
+      alert('管理者モードにログインしました。全機能およびモデレーション機能が有効化されました。');
+      setMessage('');
+      onClose();
+      return;
+    }
+
+    // 🕵️‍♂️ 裏技管理者ログアウト (logout)
+    if (cleanName === 'logout') {
+      try {
+        sessionStorage.removeItem('file26_admin_auth');
+        localStorage.removeItem('file26_bypass_unlock');
+        window.dispatchEvent(new CustomEvent('admin-auth-changed', { detail: { isAdmin: false } }));
+      } catch (err) {}
+      alert('管理者モードからログアウトしました。');
+      setMessage('');
+      onClose();
+      return;
+    }
+
     if (!cleanMsg) {
       setErrorMsg('不具合やメッセージを入力してください');
       return;

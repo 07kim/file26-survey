@@ -653,12 +653,15 @@ export default function App() {
 
   // バリデーション（全項目をしっかり回答してもらう方式。不参加時のみ氏名・学年以外任意）
   const validate = (n) => {
-    // 不参加の場合：氏名と学年のみ必須、他はすべてスキップ可能
+    // 不参加の場合：氏名と学年、およびStep 6のニックネームのみ必須
     if (answers.role === "不参加") {
       if (n === 1) {
         if (!answers.realName || !answers.realName.trim()) return "Q02：氏名（お名前）を入力してください";
         if (!answers.grade) return "Q03：学年・所属を選択してください";
         if (answers.grade === "その他" && (!answers.gradeOther || !answers.gradeOther.trim())) return "Q03：学年・所属の具体的内容を入力してください";
+      }
+      if (n === 6) {
+        if (!answers.name || !answers.name.trim()) return "SECTION 06：観測者名（ニックネーム）を入力してください（例：観測者）";
       }
       return "";
     }
@@ -700,12 +703,17 @@ export default function App() {
         return "Q19：最も心惹かれた人物（推しキャラ）を1人選んでください";
       }
     }
+    if (n === 6) {
+      if (!answers.name || !answers.name.trim()) {
+        return "SECTION 06：観測者名（ニックネーム）を入力してください（例：観測者）";
+      }
+    }
     return "";
   };
 
   // 全ステップの完全バリデーション（全項目が埋まっているか検証）
   const validateAll = () => {
-    for (let s = 1; s <= 5; s++) {
+    for (let s = 1; s <= 6; s++) {
       const err = validate(s);
       if (err) {
         return { step: s, message: err };
@@ -2827,16 +2835,16 @@ export default function App() {
                 <div style={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: '8px', padding: '14px 16px', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <b style={{ fontSize: '14px', color: 'var(--fg)', letterSpacing: '0.04em' }}>観測者名（ニックネーム）</b>
-                    <span style={{ fontSize: '10px', color: 'var(--dim)', background: 'rgba(255,255,255,0.08)', padding: '2px 7px', borderRadius: '3px' }}>任意</span>
+                    <span style={{ fontSize: '10px', color: '#ff716a', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.35)', padding: '2px 7px', borderRadius: '3px', fontWeight: 700 }}>必須</span>
                   </div>
                   <p className="help" style={{ margin: '0 0 10px 0', fontSize: '12px', lineHeight: 1.5, color: 'var(--dim)' }}>
-                    発行される戦歴カードや集合知掲示板に表示されます。
+                    発行される戦歴カードや集合知掲示板に表示されます（「観測者」のままでもOKです）。
                   </p>
                   <input
                     type="text"
                     value={answers.name}
                     onChange={(e) => setAnswers(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="例）タロウ"
+                    placeholder="例）観測者（「観測者」でもOK）"
                     maxLength="40"
                   />
                 </div>

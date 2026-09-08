@@ -289,6 +289,88 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
   });
   const [editorTargetLoop, setEditorTargetLoop] = useState('1'); // '1' | '2' | '3' | 'all'
 
+  // 🕵️‍♂️ 管理者ログイン状態のリアルタイム判定
+  const [isAdmin, setIsAdmin] = useState(() => {
+    try {
+      return sessionStorage.getItem('file26_admin_auth') === 'true' || localStorage.getItem('file26_bypass_unlock') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const handleAdminAuthChanged = (e) => {
+      setIsAdmin(Boolean(e?.detail?.isAdmin));
+    };
+    window.addEventListener('admin-auth-changed', handleAdminAuthChanged);
+    return () => window.removeEventListener('admin-auth-changed', handleAdminAuthChanged);
+  }, []);
+
+  // 🛡️ ポストモデレーション状態マップ (visible | hidden | approved | deleted)
+  const [postStatusMap, setPostStatusMap] = useState(() => {
+    try {
+      const raw = localStorage.getItem('file26_post_status_map');
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  // 管理者による公開／非公開トグル
+  const handleTogglePostStatus = (post) => {
+    const isAbsent = post.role === '不参加';
+    const curStatus = postStatusMap[post.id] || (isAbsent ? 'hidden' : 'visible');
+    let nextStatus = 'visible';
+
+    if (isAbsent) {
+      nextStatus = curStatus === 'approved' ? 'hidden' : 'approved';
+    } else {
+      nextStatus = curStatus === 'hidden' ? 'visible' : 'hidden';
+    }
+
+    const nextMap = { ...postStatusMap, [post.id]: nextStatus };
+    setPostStatusMap(nextMap);
+    try {
+      localStorage.setItem('file26_post_status_map', JSON.stringify(nextMap));
+    } catch (e) {}
+
+    if (nextStatus === 'approved' || nextStatus === 'visible') {
+      showToast('投稿を「全体公開」に設定しました');
+    } else {
+      showToast('投稿を「非公開（シャドウ）」に設定しました（投稿者本人には気付かれません）');
+    }
+  };
+
+  // 管理者による投稿削除
+  const handleAdminDeletePost = async (post) => {
+    const ok = window.confirm('この投稿を完全に削除しますか？\n（管理者権限によりタイムラインおよびサーバーから削除されます）');
+    if (!ok) return;
+
+    const nextMap = { ...postStatusMap, [post.id]: 'deleted' };
+    setPostStatusMap(nextMap);
+    try {
+      localStorage.setItem('file26_post_status_map', JSON.stringify(nextMap));
+    } catch (e) {}
+
+    showToast('投稿を削除しました');
+
+    // サーバーDBからも削除リクエスト
+    try {
+      if (post.category === 'question' || post.category === 'board') {
+        await sheetApi.deleteCrossTalk({ id: post.id });
+      } else {
+        await sheetApi.deletePost({
+          obsCode: post.obsCode,
+          googleEmail: post.googleEmail,
+          postType: post.category === 'scene' ? 'scene' : (post.category === 'favorite' ? 'cast' : 'comment'),
+          targetCast: post.targetCast
+        });
+      }
+    } catch (e) {
+      console.warn('Server delete error:', e);
+    }
+  };
+
   // 下書きのsessionStorageへのリアルタイム保存
   useEffect(() => {
     try {
@@ -390,14 +472,17 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
     // 3. スプレッドシートのアンケート回答 (SURVEY) から感想・名場面・推し手記をそれぞれ独立ポストとして統合
     if (serverResponses && serverResponses.length > 0) {
       serverResponses.forEach((resp, idx) => {
-        if (resp.role === '不参加') return; // 不参加者の回答は全体タイムラインから除外
         const respCode = resp.obsCode || `OBS-RESP-${idx}`;
         const respFav = findCastIdByName(resp.favoriteCast) || '';
+        const isMe = formData.obsCode ? resp.obsCode === formData.obsCode : false;
+        const isAbsent = resp.role === '不参加';
+
         const baseRespData = {
           obsCode: respCode,
           name: resp.name || resp.observerName || '観測者',
           observerName: resp.name || resp.observerName || '観測者',
           grade: resp.grade || '一般',
+          role: resp.role || '観測者',
           loopTrack: {
             loop1: findCastIdByName(resp.loop1) || 'sakurai',
             loop2: findCastIdByName(resp.loop2) || 'jinnai',
@@ -411,39 +496,53 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
           stampUsers: resp.reactions?.users ? { chills: resp.reactions.users, resonance: resp.reactions.users } : { chills: [], resonance: [] },
           timestamp: resp.timestamp || nowIso,
           time: formatPostTime(resp.timestamp || nowIso),
-          isMe: formData.obsCode ? resp.obsCode === formData.obsCode : false
+          isMe: isMe
         };
 
         // 3-A. 全体の感想 / ひとこと ポスト
         const respCommentText = (resp.impressions || resp.routeComment || resp.word || '').trim();
         const surveyCommentId = `survey-${respCode}-comment`;
         if (respCommentText) {
-          list.push({
-            ...baseRespData,
-            id: surveyCommentId,
-            category: 'comment',
-            postType: '感想',
-            word: resp.word || '',
-            impressions: resp.impressions || '',
-            routeComment: resp.routeComment || '',
-            message: resp.impressions || resp.routeComment || resp.word,
-            replies: serverReplies[surveyCommentId] || []
-          });
+          const status = postStatusMap[surveyCommentId] || (isAbsent ? 'hidden' : 'visible');
+          if (status !== 'deleted') {
+            const canShow = isMe || isAdmin || (isAbsent ? status === 'approved' : status !== 'hidden');
+            if (canShow) {
+              list.push({
+                ...baseRespData,
+                id: surveyCommentId,
+                category: 'comment',
+                postType: '感想',
+                word: resp.word || '',
+                impressions: resp.impressions || '',
+                routeComment: resp.routeComment || '',
+                message: resp.impressions || resp.routeComment || resp.word,
+                status: status,
+                replies: serverReplies[surveyCommentId] || []
+              });
+            }
+          }
         }
 
         // 3-B. 忘れられない場面・セリフ ポスト（独立した1つのポスト）
         const respBestText = (resp.best || '').trim();
         const surveyBestId = `survey-${respCode}-best`;
         if (respBestText && respBestText !== respCommentText) {
-          list.push({
-            ...baseRespData,
-            id: surveyBestId,
-            category: 'scene',
-            postType: '名場面・セリフ',
-            best: respBestText,
-            message: respBestText,
-            replies: serverReplies[surveyBestId] || []
-          });
+          const status = postStatusMap[surveyBestId] || (isAbsent ? 'hidden' : 'visible');
+          if (status !== 'deleted') {
+            const canShow = isMe || isAdmin || (isAbsent ? status === 'approved' : status !== 'hidden');
+            if (canShow) {
+              list.push({
+                ...baseRespData,
+                id: surveyBestId,
+                category: 'scene',
+                postType: '名場面・セリフ',
+                best: respBestText,
+                message: respBestText,
+                status: status,
+                replies: serverReplies[surveyBestId] || []
+              });
+            }
+          }
         }
 
         // 3-C. 各キャストへのメッセージ ポスト（複数名分あればそれぞれ独立ポスト・非公開設定は除外）
@@ -457,17 +556,24 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
             if (castMsg && castMsg !== respCommentText && castMsg !== respBestText) {
               const targetCast = findCastIdByName(castKey) || castKey;
               const surveyCastPostId = `survey-${respCode}-cast-${targetCast}`;
-              list.push({
-                ...baseRespData,
-                id: surveyCastPostId,
-                category: 'favorite',
-                targetCast: targetCast,
-                favoriteCast: respFav,
-                postType: `${getDisplayName(targetCast)} へのメッセージ`,
-                message: castMsg,
-                isPrivate: isPrivate,
-                replies: serverReplies[surveyCastPostId] || []
-              });
+              const status = postStatusMap[surveyCastPostId] || (isAbsent ? 'hidden' : 'visible');
+              if (status !== 'deleted') {
+                const canShow = isMe || isAdmin || (isAbsent ? status === 'approved' : status !== 'hidden');
+                if (canShow) {
+                  list.push({
+                    ...baseRespData,
+                    id: surveyCastPostId,
+                    category: 'favorite',
+                    targetCast: targetCast,
+                    favoriteCast: respFav,
+                    postType: `${getDisplayName(targetCast)} へのメッセージ`,
+                    message: castMsg,
+                    isPrivate: isPrivate,
+                    status: status,
+                    replies: serverReplies[surveyCastPostId] || []
+                  });
+                }
+              }
             }
           });
         }
@@ -476,16 +582,23 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
         const respGeneralMsg = (resp.msg || '').trim();
         const surveyMsgId = `survey-${respCode}-msg`;
         if (respGeneralMsg && respGeneralMsg !== respCommentText && respGeneralMsg !== respBestText) {
-          list.push({
-            ...baseRespData,
-            id: surveyMsgId,
-            category: 'favorite',
-            targetCast: 'all',
-            favoriteCast: respFav,
-            postType: '演者・運営へのメッセージ',
-            message: respGeneralMsg,
-            replies: serverReplies[surveyMsgId] || []
-          });
+          const status = postStatusMap[surveyMsgId] || (isAbsent ? 'hidden' : 'visible');
+          if (status !== 'deleted') {
+            const canShow = isMe || isAdmin || (isAbsent ? status === 'approved' : status !== 'hidden');
+            if (canShow) {
+              list.push({
+                ...baseRespData,
+                id: surveyMsgId,
+                category: 'favorite',
+                targetCast: 'all',
+                favoriteCast: respFav,
+                postType: '演者・運営へのメッセージ',
+                message: respGeneralMsg,
+                status: status,
+                replies: serverReplies[surveyMsgId] || []
+              });
+            }
+          }
         }
       });
     }
@@ -579,14 +692,17 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
 
       // 3. SURVEY
       sResps.forEach((resp, idx) => {
-        if (resp.role === '不参加') return; // 不参加者の回答は全体タイムラインから除外
         const respCode = resp.obsCode || `OBS-RESP-${idx}`;
         const respFav = findCastIdByName(resp.favoriteCast) || '';
+        const isMe = formData.obsCode ? resp.obsCode === formData.obsCode : false;
+        const isAbsent = resp.role === '不参加';
+
         const baseRespData = {
           obsCode: respCode,
           name: resp.name || resp.observerName || '観測者',
           observerName: resp.name || resp.observerName || '観測者',
           grade: resp.grade || '一般',
+          role: resp.role || '観測者',
           loopTrack: {
             loop1: findCastIdByName(resp.loop1) || 'sakurai',
             loop2: findCastIdByName(resp.loop2) || 'jinnai',
@@ -600,37 +716,51 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
           stampUsers: resp.reactions?.users ? { chills: resp.reactions.users, resonance: resp.reactions.users } : { chills: [], resonance: [] },
           timestamp: resp.timestamp || nowIso,
           time: formatPostTime(resp.timestamp || nowIso),
-          isMe: formData.obsCode ? resp.obsCode === formData.obsCode : false
+          isMe: isMe
         };
 
         const respCommentText = (resp.impressions || resp.routeComment || resp.word || '').trim();
         const surveyCommentId = `survey-${respCode}-comment`;
         if (respCommentText) {
-          list.push({
-            ...baseRespData,
-            id: surveyCommentId,
-            category: 'comment',
-            postType: '感想',
-            word: resp.word || '',
-            impressions: resp.impressions || '',
-            routeComment: resp.routeComment || '',
-            message: resp.impressions || resp.routeComment || resp.word,
-            replies: sReps[surveyCommentId] || []
-          });
+          const status = postStatusMap[surveyCommentId] || (isAbsent ? 'hidden' : 'visible');
+          if (status !== 'deleted') {
+            const canShow = isMe || isAdmin || (isAbsent ? status === 'approved' : status !== 'hidden');
+            if (canShow) {
+              list.push({
+                ...baseRespData,
+                id: surveyCommentId,
+                category: 'comment',
+                postType: '感想',
+                word: resp.word || '',
+                impressions: resp.impressions || '',
+                routeComment: resp.routeComment || '',
+                message: resp.impressions || resp.routeComment || resp.word,
+                status: status,
+                replies: sReps[surveyCommentId] || []
+              });
+            }
+          }
         }
 
         const respBestText = (resp.best || '').trim();
         const surveyBestId = `survey-${respCode}-best`;
         if (respBestText && respBestText !== respCommentText) {
-          list.push({
-            ...baseRespData,
-            id: surveyBestId,
-            category: 'scene',
-            postType: '名場面・セリフ',
-            best: respBestText,
-            message: respBestText,
-            replies: sReps[surveyBestId] || []
-          });
+          const status = postStatusMap[surveyBestId] || (isAbsent ? 'hidden' : 'visible');
+          if (status !== 'deleted') {
+            const canShow = isMe || isAdmin || (isAbsent ? status === 'approved' : status !== 'hidden');
+            if (canShow) {
+              list.push({
+                ...baseRespData,
+                id: surveyBestId,
+                category: 'scene',
+                postType: '名場面・セリフ',
+                best: respBestText,
+                message: respBestText,
+                status: status,
+                replies: sReps[surveyBestId] || []
+              });
+            }
+          }
         }
 
         if (resp.characterComments && typeof resp.characterComments === 'object') {
@@ -643,17 +773,24 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
             if (castMsg && castMsg !== respCommentText && castMsg !== respBestText) {
               const targetCast = findCastIdByName(castKey) || castKey;
               const surveyCastPostId = `survey-${respCode}-cast-${targetCast}`;
-              list.push({
-                ...baseRespData,
-                id: surveyCastPostId,
-                category: 'favorite',
-                targetCast: targetCast,
-                favoriteCast: respFav,
-                postType: `${getDisplayName(targetCast)} へのメッセージ`,
-                message: castMsg,
-                isPrivate: isPrivate,
-                replies: sReps[surveyCastPostId] || []
-              });
+              const status = postStatusMap[surveyCastPostId] || (isAbsent ? 'hidden' : 'visible');
+              if (status !== 'deleted') {
+                const canShow = isMe || isAdmin || (isAbsent ? status === 'approved' : status !== 'hidden');
+                if (canShow) {
+                  list.push({
+                    ...baseRespData,
+                    id: surveyCastPostId,
+                    category: 'favorite',
+                    targetCast: targetCast,
+                    favoriteCast: respFav,
+                    postType: `${getDisplayName(targetCast)} へのメッセージ`,
+                    message: castMsg,
+                    isPrivate: isPrivate,
+                    status: status,
+                    replies: sReps[surveyCastPostId] || []
+                  });
+                }
+              }
             }
           });
         }
@@ -661,16 +798,23 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
         const respGeneralMsg = (resp.msg || '').trim();
         const surveyMsgId = `survey-${respCode}-msg`;
         if (respGeneralMsg && respGeneralMsg !== respCommentText && respGeneralMsg !== respBestText) {
-          list.push({
-            ...baseRespData,
-            id: surveyMsgId,
-            category: 'favorite',
-            targetCast: 'all',
-            favoriteCast: respFav,
-            postType: '演者・運営へのメッセージ',
-            message: respGeneralMsg,
-            replies: sReps[surveyMsgId] || []
-          });
+          const status = postStatusMap[surveyMsgId] || (isAbsent ? 'hidden' : 'visible');
+          if (status !== 'deleted') {
+            const canShow = isMe || isAdmin || (isAbsent ? status === 'approved' : status !== 'hidden');
+            if (canShow) {
+              list.push({
+                ...baseRespData,
+                id: surveyMsgId,
+                category: 'favorite',
+                targetCast: 'all',
+                favoriteCast: respFav,
+                postType: '演者・運営へのメッセージ',
+                message: respGeneralMsg,
+                status: status,
+                replies: sReps[surveyMsgId] || []
+              });
+            }
+          }
         }
       });
 
@@ -1635,7 +1779,53 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
                             <span className="text-slate-400 font-mono text-xs">
                               {post.time}
                             </span>
+
+                            {/* 🏷️ 不参加（体験）バッジ（アイコンなし） */}
+                            {post.role === '不参加' && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                ［不参加（体験）］
+                              </span>
+                            )}
+
+                            {/* 🏷️ 管理者モードでの非公開状態バッジ（アイコンなし） */}
+                            {isAdmin && (post.status === 'hidden' || (post.role === '不参加' && post.status !== 'approved')) && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                                ［非公開中］
+                              </span>
+                            )}
                           </div>
+
+                          {/* 🛡️ 管理者用モデレーションボタン (他人の投稿に対して) */}
+                          {isAdmin && !isMyPost(post) && (
+                            <div className="flex items-center gap-1 shrink-0 ml-auto">
+                              <button
+                                type="button"
+                                onClick={() => handleTogglePostStatus(post)}
+                                className={`px-2 py-0.5 rounded text-[11px] font-bold border transition-colors cursor-pointer ${
+                                  (post.role === '不参加' ? post.status === 'approved' : post.status !== 'hidden')
+                                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                                    : 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30'
+                                }`}
+                                title={
+                                  post.role === '不参加'
+                                    ? (post.status === 'approved' ? 'タップして非公開に戻す' : 'タップして全体公開に承認')
+                                    : (post.status === 'hidden' ? 'タップして全体公開に戻す' : 'タップして非公開（シャドウ）に設定')
+                                }
+                              >
+                                {post.role === '不参加'
+                                  ? (post.status === 'approved' ? '公開中（承認済）' : '非公開（未承認）')
+                                  : (post.status === 'hidden' ? '非公開中' : '全体公開中')}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAdminDeletePost(post)}
+                                className="px-1.5 py-0.5 rounded text-[11px] font-bold bg-slate-800 text-slate-400 hover:text-rose-400 hover:bg-rose-500/20 border border-slate-700 hover:border-rose-500/40 transition-colors cursor-pointer"
+                                title="管理者権限で完全に削除"
+                              >
+                                削除
+                              </button>
+                            </div>
+                          )}
 
                           {/* ⚙️ 自分の投稿の場合の公開/非公開・編集・削除ボタン */}
                           {isMyPost(post) && (

@@ -53,6 +53,34 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
   // 不参加除外フィルター: 'attended' (参加者・スタッフのみ) | 'all' (すべて) | 'absentOnly' (不参加のみ)
   const [absentFilter, setAbsentFilter] = useState('attended');
 
+  // 🛡️ ポストモデレーション状態マップ (visible | hidden | approved | deleted)
+  const [postStatusMap, setPostStatusMap] = useState(() => {
+    try {
+      const raw = localStorage.getItem('file26_post_status_map');
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  const handleTogglePostStatus = (postId, role) => {
+    const isAbsent = role === '不参加';
+    const curStatus = postStatusMap[postId] || (isAbsent ? 'hidden' : 'visible');
+    let nextStatus = 'visible';
+
+    if (isAbsent) {
+      nextStatus = curStatus === 'approved' ? 'hidden' : 'approved';
+    } else {
+      nextStatus = curStatus === 'hidden' ? 'visible' : 'hidden';
+    }
+
+    const nextMap = { ...postStatusMap, [postId]: nextStatus };
+    setPostStatusMap(nextMap);
+    try {
+      localStorage.setItem('file26_post_status_map', JSON.stringify(nextMap));
+    } catch (e) {}
+  };
+
   // 表示モード: 'summary' (質問別) | 'individual' (個別回答) | 'table' (一覧テーブル)
   const [activeTab, setActiveTab] = useState('summary');
   const [individualIndex, setIndividualIndex] = useState(0);
@@ -880,6 +908,34 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                     label="Q16. 全体の感想（自由記述）"
                     value={currentIndividual.impressions || currentIndividual.routeComment}
                     highlight="amber"
+                    headerRight={
+                      currentIndividual.obsCode ? (
+                        (() => {
+                          const commentId = `survey-${currentIndividual.obsCode}-comment`;
+                          const isAbsent = currentIndividual.role === '不参加';
+                          const curStatus = postStatusMap[commentId] || (isAbsent ? 'hidden' : 'visible');
+                          const isVisible = isAbsent ? curStatus === 'approved' : curStatus !== 'hidden';
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded border ${
+                                isVisible
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                              : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                              }`}>
+                                {isAbsent ? (curStatus === 'approved' ? '［公開承認済］' : '［非公開（未承認）］') : (curStatus === 'hidden' ? '［非公開中］' : '［公開中］')}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleTogglePostStatus(commentId, currentIndividual.role)}
+                                className="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
+                              >
+                                {isVisible ? '非公開にする' : (isAbsent ? '承認して公開' : '全体公開にする')}
+                              </button>
+                            </div>
+                          );
+                        })()
+                      ) : null
+                    }
                   />
                   <IndividualItem
                     label="S3. 選択ルート感想・考察"
@@ -890,6 +946,34 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                     label="Q17. いちばん忘れられない場面・セリフ"
                     value={currentIndividual.best}
                     highlight="sky"
+                    headerRight={
+                      currentIndividual.obsCode ? (
+                        (() => {
+                          const bestId = `survey-${currentIndividual.obsCode}-best`;
+                          const isAbsent = currentIndividual.role === '不参加';
+                          const curStatus = postStatusMap[bestId] || (isAbsent ? 'hidden' : 'visible');
+                          const isVisible = isAbsent ? curStatus === 'approved' : curStatus !== 'hidden';
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded border ${
+                                isVisible
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                              : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                              }`}>
+                                {isAbsent ? (curStatus === 'approved' ? '［公開承認済］' : '［非公開（未承認）］') : (curStatus === 'hidden' ? '［非公開中］' : '［公開中］')}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleTogglePostStatus(bestId, currentIndividual.role)}
+                                className="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
+                              >
+                                {isVisible ? '非公開にする' : (isAbsent ? '承認して公開' : '全体公開にする')}
+                              </button>
+                            </div>
+                          );
+                        })()
+                      ) : null
+                    }
                   />
                   <IndividualItem
                     label="Q18. もっとこうしてほしかったこと（改善点）"
@@ -1124,7 +1208,17 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
 
             <div className="space-y-4 text-xs">
               <IndividualItem label="Google認証" value={selectedResponse.googleEmail || '未認証'} />
-              <IndividualItem label="来場区分" value={selectedResponse.role} />
+              <IndividualItem
+                label="来場区分"
+                value={selectedResponse.role}
+                headerRight={
+                  selectedResponse.role === '不参加' ? (
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                      ［不参加（体験）］
+                    </span>
+                  ) : null
+                }
+              />
               <IndividualItem label="学年" value={selectedResponse.grade} />
               <IndividualItem label="事前配布物" value={selectedResponse.prep} />
               <IndividualItem label="1周目ルート" value={selectedResponse.loop1} />
@@ -1132,8 +1226,72 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
               <IndividualItem label="3周目ルート" value={selectedResponse.loop3} />
               <IndividualItem label="🔒 Q15 感想（非公開・運営宛）" value={selectedResponse.msg || selectedResponse.privateImpressions} highlight="rose" />
               <IndividualItem label="🌐 Q16 公開用感想（タイトル）" value={selectedResponse.word} highlight="indigo" />
-              <IndividualItem label="🌐 Q16 公開用感想（自由記述）" value={selectedResponse.impressions} highlight="amber" />
-              <IndividualItem label="🌐 Q17 いちばん忘れられない場面・セリフ" value={selectedResponse.best} highlight="sky" />
+              <IndividualItem
+                label="🌐 Q16 公開用感想（自由記述）"
+                value={selectedResponse.impressions}
+                highlight="amber"
+                headerRight={
+                  selectedResponse.obsCode ? (
+                    (() => {
+                      const commentId = `survey-${selectedResponse.obsCode}-comment`;
+                      const isAbsent = selectedResponse.role === '不参加';
+                      const curStatus = postStatusMap[commentId] || (isAbsent ? 'hidden' : 'visible');
+                      const isVisible = isAbsent ? curStatus === 'approved' : curStatus !== 'hidden';
+                      return (
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded border ${
+                            isVisible
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                              : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                          }`}>
+                            {isAbsent ? (curStatus === 'approved' ? '［公開承認済］' : '［非公開（未承認）］') : (curStatus === 'hidden' ? '［非公開中］' : '［公開中］')}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePostStatus(commentId, selectedResponse.role)}
+                            className="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
+                          >
+                            {isVisible ? '非公開にする' : (isAbsent ? '承認して公開' : '全体公開にする')}
+                          </button>
+                        </div>
+                      );
+                    })()
+                  ) : null
+                }
+              />
+              <IndividualItem
+                label="🌐 Q17 いちばん忘れられない場面・セリフ"
+                value={selectedResponse.best}
+                highlight="sky"
+                headerRight={
+                  selectedResponse.obsCode ? (
+                    (() => {
+                      const bestId = `survey-${selectedResponse.obsCode}-best`;
+                      const isAbsent = selectedResponse.role === '不参加';
+                      const curStatus = postStatusMap[bestId] || (isAbsent ? 'hidden' : 'visible');
+                      const isVisible = isAbsent ? curStatus === 'approved' : curStatus !== 'hidden';
+                      return (
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded border ${
+                            isVisible
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                              : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                          }`}>
+                            {isAbsent ? (curStatus === 'approved' ? '［公開承認済］' : '［非公開（未承認）］') : (curStatus === 'hidden' ? '［非公開中］' : '［公開中］')}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePostStatus(bestId, selectedResponse.role)}
+                            className="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
+                          >
+                            {isVisible ? '非公開にする' : (isAbsent ? '承認して公開' : '全体公開にする')}
+                          </button>
+                        </div>
+                      );
+                    })()
+                  ) : null
+                }
+              />
               <IndividualItem label="🔒 Q18 改善点・要望" value={selectedResponse.improve} highlight="slate" />
               <IndividualItem label="★ Q19 最も心惹かれた人物（推し）" value={selectedResponse.favoriteCast} highlight="rose" />
               <IndividualItem label="🧭 選択ルート感想・考察" value={selectedResponse.routeComment} highlight="teal" />
@@ -1562,7 +1720,7 @@ function QuestionSummaryBlock({
 }
 
 // ── 個別項目レンダリング ──
-function IndividualItem({ label, value, highlight }) {
+function IndividualItem({ label, value, highlight, headerRight }) {
   if (!value && value !== 0) {
     value = '—';
   }
@@ -1580,7 +1738,10 @@ function IndividualItem({ label, value, highlight }) {
 
   return (
     <div className={`p-3.5 rounded-xl border space-y-1 ${highlightClass}`}>
-      <div className="text-[11px] font-bold text-slate-400">{label}</div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[11px] font-bold text-slate-400">{label}</div>
+        {headerRight}
+      </div>
       <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">{String(value)}</div>
     </div>
   );
