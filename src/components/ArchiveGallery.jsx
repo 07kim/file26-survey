@@ -170,72 +170,18 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
     setIsLoading(false);
   };
 
-// 周りのフレームを完全に排し、カードそのもの（ResultCard）だけを直接縮小表示
+// 各カードアイテム（ResultCard自身の幅検知スケールに任せて完全フィット表示）
 function GalleryCardItem({ card, onSelect }) {
-  const containerRef = useRef(null);
-  const cardInnerRef = useRef(null);
-  const [scale, setScale] = useState(0.45);
-  const [cardHeight, setCardHeight] = useState(720);
-
-  useEffect(() => {
-    const updateScaleAndHeight = () => {
-      if (containerRef.current) {
-        const availableW = containerRef.current.offsetWidth;
-        // ResultCard基準幅は560px
-        const newScale = Math.min(1, Math.max(0.2, availableW / 560));
-        setScale(newScale);
-      }
-      if (cardInnerRef.current) {
-        const h = cardInnerRef.current.offsetHeight;
-        if (h > 0) {
-          setCardHeight(h);
-        }
-      }
-    };
-
-    updateScaleAndHeight();
-    const ro = new ResizeObserver(updateScaleAndHeight);
-    if (containerRef.current) ro.observe(containerRef.current);
-    if (cardInnerRef.current) ro.observe(cardInnerRef.current);
-    window.addEventListener('resize', updateScaleAndHeight);
-
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', updateScaleAndHeight);
-    };
-  }, []);
-
   return (
     <div
       onClick={() => onSelect(card)}
-      className="group relative cursor-pointer overflow-hidden transition-transform duration-200 hover:scale-[1.03] rounded-2xl"
-      style={{
-        width: '100%'
-      }}
+      className="group relative cursor-pointer overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl rounded-2xl flex justify-center"
     >
-      {/* カード本体のみを直接縮小配置（外側フレームなし） */}
-      <div
-        ref={containerRef}
-        className="w-full relative flex justify-center items-start overflow-hidden rounded-2xl"
-        style={{
-          height: `${Math.ceil(cardHeight * scale)}px`,
-          transition: 'height 0.15s ease-out'
-        }}
-      >
-        <div
-          ref={cardInnerRef}
-          style={{
-            width: '560px',
-            transform: `scale(${scale})`,
-            transformOrigin: 'top center',
-            pointerEvents: 'none'
-          }}
-        >
-          <ResultCard
-            formData={card}
-            showControls={false}
-          />
-        </div>
+      <div className="w-full max-w-[560px] pointer-events-none">
+        <ResultCard
+          formData={card}
+          showControls={false}
+        />
       </div>
     </div>
   );
@@ -360,7 +306,7 @@ function GalleryCardItem({ card, onSelect }) {
         </div>
       </div>
 
-      {/* ── 📇 観測戦歴カード一覧（スマホ2列、タブレット3〜4列、PC4〜5列でコンパクトにたくさん並ぶ） ── */}
+      {/* ── 📇 観測戦歴カード一覧（程よい余白とバランスで並ぶグリッド） ── */}
       {filteredCards.length === 0 ? (
         <div className="bg-slate-900/60 border border-dashed border-slate-800 rounded-3xl p-10 sm:p-14 text-center space-y-3 my-6">
           <div className="text-4xl">📂</div>
@@ -370,7 +316,7 @@ function GalleryCardItem({ card, onSelect }) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 justify-center">
           {filteredCards.map((card, idx) => (
             <GalleryCardItem
               key={card.id || card.obsCode || idx}
