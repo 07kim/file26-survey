@@ -170,11 +170,11 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
     setIsLoading(false);
   };
 
-// 縮小スケールでResultCard全体を完全に表示するギャラリーカードアイテム（コンパクト設計）
+// 周りのフレームを完全に排し、カードそのもの（ResultCard）だけを直接縮小表示
 function GalleryCardItem({ card, onSelect }) {
   const containerRef = useRef(null);
   const cardInnerRef = useRef(null);
-  const [scale, setScale] = useState(0.42);
+  const [scale, setScale] = useState(0.45);
   const [cardHeight, setCardHeight] = useState(720);
 
   useEffect(() => {
@@ -182,7 +182,7 @@ function GalleryCardItem({ card, onSelect }) {
       if (containerRef.current) {
         const availableW = containerRef.current.offsetWidth;
         // ResultCard基準幅は560px
-        const newScale = Math.min(1, Math.max(0.25, availableW / 560));
+        const newScale = Math.min(1, Math.max(0.2, availableW / 560));
         setScale(newScale);
       }
       if (cardInnerRef.current) {
@@ -208,25 +208,15 @@ function GalleryCardItem({ card, onSelect }) {
   return (
     <div
       onClick={() => onSelect(card)}
-      className="group relative bg-[#090b10] border border-slate-800 hover:border-emerald-500/70 rounded-xl p-1.5 sm:p-2.5 shadow-md hover:shadow-xl hover:shadow-emerald-950/30 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden hover:-translate-y-1"
+      className="group relative cursor-pointer overflow-hidden transition-transform duration-200 hover:scale-[1.03] rounded-2xl"
+      style={{
+        width: '100%'
+      }}
     >
-      {/* カード上部：観測者名 ＆ ObsCode */}
-      <div className="w-full flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-800/80 text-[11px]">
-        <div className="flex items-center gap-1 min-w-0 pr-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-          <span className="font-bold text-slate-100 truncate text-[11px] sm:text-xs">
-            {card.observerName || '観測者'}
-          </span>
-        </div>
-        <span className="text-[9.5px] font-mono text-slate-400 px-1 py-0.2 bg-slate-900 border border-slate-800 rounded shrink-0">
-          {card.obsCode}
-        </span>
-      </div>
-
-      {/* 縮小表示コンテナ（比率を完全維持してカードの端から端まで全表示） */}
+      {/* カード本体のみを直接縮小配置（外側フレームなし） */}
       <div
         ref={containerRef}
-        className="w-full relative flex justify-center items-start overflow-hidden rounded-lg bg-[#06080c] border border-white/5"
+        className="w-full relative flex justify-center items-start overflow-hidden rounded-2xl"
         style={{
           height: `${Math.ceil(cardHeight * scale)}px`,
           transition: 'height 0.15s ease-out'
@@ -245,17 +235,6 @@ function GalleryCardItem({ card, onSelect }) {
             formData={card}
             showControls={false}
           />
-        </div>
-      </div>
-
-      {/* カード下部バー */}
-      <div className="w-full pt-1.5 mt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
-        <span className="font-mono text-[9px] truncate">
-          {card.time || '記録済'}
-        </span>
-        <div className="text-[10px] text-emerald-400 font-bold flex items-center gap-0.5 group-hover:text-emerald-300 shrink-0">
-          <span>拡大</span>
-          <ExternalLink className="w-2.5 h-2.5" />
         </div>
       </div>
     </div>

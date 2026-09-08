@@ -242,7 +242,7 @@ export default function ResultCard({ formData, onScrollToBoard, onReEdit, showCo
         height: `${cardHeight * scale}px`,
         width: '100%',
         position: 'relative',
-        marginBottom: '16px',
+        marginBottom: showControls ? '16px' : '0px',
         transition: 'height 0.15s ease-out'
       }}>
         <div 
