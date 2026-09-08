@@ -104,33 +104,11 @@ export default function Step3SceneObservation({ formData, updateFormData, onNext
                       {item.time}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs sm:text-[13px] font-bold flex items-center justify-between gap-1.5">
-                        <span className="text-white text-pretty-ja">{item.place} ｜ {item.title}</span>
+                      <div className="flex items-center justify-between gap-1.5">
+                        <span className="text-[11px] font-semibold text-slate-400 tracking-wider">
+                          {item.place}
+                        </span>
                         <div className="flex items-center gap-1 shrink-0">
-                          {item.casts?.length > 0 && (
-                            <div className="flex items-center">
-                              {item.casts.map((cId, idx) => {
-                                const c = CAST_MEMBERS.find(x => x.id === cId);
-                                if (!c || !c.avatar) return null;
-                                return (
-                                  <img
-                                    key={cId}
-                                    src={c.avatar}
-                                    alt={c.name}
-                                    title={c.name}
-                                    className="rounded-full object-cover border-2 border-slate-300 shadow-md"
-                                    style={{
-                                      width: '52px',
-                                      height: '52px',
-                                      objectPosition: 'center 15%',
-                                      marginLeft: idx > 0 ? '-18px' : '0',
-                                      zIndex: item.casts.length - idx
-                                    }}
-                                  />
-                                );
-                              })}
-                            </div>
-                          )}
                           {isSelected && (
                             <span className="w-4 h-4 rounded-full bg-[#ff4a42] text-white flex items-center justify-center text-[10px] ml-1 shrink-0 shadow-sm">
                               ✓
@@ -138,10 +116,39 @@ export default function Step3SceneObservation({ formData, updateFormData, onNext
                           )}
                         </div>
                       </div>
-                      <div className="text-xs text-slate-300 mt-1 leading-snug text-pretty-ja">
-                        {item.desc}
+                      <div className="text-sm sm:text-base font-extrabold text-white leading-tight my-0.5 text-pretty-ja">
+                        {item.title}
                       </div>
+                      {item.desc && (
+                        <div className="text-xs text-slate-300 mt-1 leading-snug text-pretty-ja">
+                          {item.desc}
+                        </div>
+                      )}
                     </div>
+                    {item.casts?.length > 0 && (
+                      <div className="flex items-center ml-auto self-center shrink-0 pl-2">
+                        {item.casts.map((cId, idx) => {
+                          const c = CAST_MEMBERS.find(x => x.id === cId);
+                          if (!c || !c.avatar) return null;
+                          return (
+                            <img
+                              key={cId}
+                              src={c.avatar}
+                              alt={c.name}
+                              title={c.name}
+                              className="rounded-full object-cover border-2 border-slate-300 shadow-md"
+                              style={{
+                                width: '52px',
+                                height: '52px',
+                                objectPosition: 'center 15%',
+                                marginLeft: idx > 0 ? '-18px' : '0',
+                                zIndex: item.casts.length - idx
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })}
