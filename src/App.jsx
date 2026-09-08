@@ -2106,25 +2106,26 @@ export default function App() {
                       marginBottom: '24px',
                       padding: '16px 18px',
                       background: isFavPrivate 
-                        ? 'linear-gradient(135deg, rgba(71, 85, 105, 0.2) 0%, rgba(15, 23, 42, 0.9) 100%)'
+                        ? 'linear-gradient(135deg, rgba(71, 85, 105, 0.25) 0%, rgba(15, 23, 42, 0.95) 100%)'
                         : 'linear-gradient(135deg, rgba(184, 53, 47, 0.12) 0%, rgba(15, 23, 42, 0.85) 100%)',
-                      border: isFavPrivate ? '2px solid rgba(148, 163, 184, 0.45)' : '2px solid rgba(184, 53, 47, 0.55)',
+                      border: isFavPrivate ? '2px solid rgba(244, 63, 94, 0.45)' : '2px solid rgba(184, 53, 47, 0.55)',
                       borderRadius: '12px',
                       boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
-                      position: 'relative'
+                      position: 'relative',
+                      transition: 'all 0.3s ease'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           {favP.avatar && (
                             <img
                               src={favP.avatar}
                               alt=""
-                              style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', objectPosition: 'center 15%', border: isFavPrivate ? '2px solid #64748b' : '2px solid #b8352f', boxShadow: '0 0 10px rgba(0,0,0,0.5)' }}
+                              style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', objectPosition: 'center 15%', border: isFavPrivate ? '2px solid #f43f5e' : '2px solid #b8352f', boxShadow: '0 0 10px rgba(0,0,0,0.5)' }}
                             />
                           )}
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                              <span style={{ fontSize: '11px', color: isFavPrivate ? '#cbd5e1' : '#ff716a', fontWeight: 800, letterSpacing: '0.08em' }}>
+                              <span style={{ fontSize: '11px', color: isFavPrivate ? '#fda4af' : '#ff716a', fontWeight: 800, letterSpacing: '0.08em' }}>
                                 ◈ 最重要観測対象への手記 ＆ メッセージ
                               </span>
                             </div>
@@ -2134,9 +2135,8 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* 公開 / 非公開トグルボタン */}
-                        <button
-                          type="button"
+                        {/* 視覚的トグルスイッチ（推し手記） */}
+                        <div
                           onClick={() => {
                             setAnswers(prev => ({
                               ...prev,
@@ -2147,30 +2147,60 @@ export default function App() {
                             }));
                           }}
                           style={{
-                            cursor: 'pointer',
-                            padding: '4px 10px',
-                            borderRadius: '20px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            border: isFavPrivate ? '1px solid rgba(244, 63, 94, 0.5)' : '1px solid rgba(52, 211, 153, 0.5)',
-                            background: isFavPrivate ? 'rgba(225, 29, 72, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                            color: isFavPrivate ? '#fda4af' : '#6ee7b7',
-                            display: 'inline-flex',
+                            display: 'flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            transition: 'all 0.2s ease'
+                            gap: '8px',
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            background: isFavPrivate ? 'rgba(225, 29, 72, 0.2)' : 'rgba(16, 185, 129, 0.15)',
+                            border: isFavPrivate ? '1.5px solid rgba(244, 63, 94, 0.6)' : '1.5px solid rgba(52, 211, 153, 0.5)',
+                            padding: '4px 10px 4px 6px',
+                            borderRadius: '24px',
+                            transition: 'all 0.25s ease',
+                            boxShadow: isFavPrivate ? '0 0 12px rgba(225, 29, 72, 0.25)' : '0 0 12px rgba(16, 185, 129, 0.2)'
                           }}
+                          title="クリックして公開/非公開を切り替え"
                         >
-                          {isFavPrivate ? '🔒 非公開（運営・キャスト宛）' : '🌐 全体に公開中'}
-                        </button>
+                          {/* スイッチ本体（トラック） */}
+                          <div style={{
+                            width: '38px',
+                            height: '22px',
+                            borderRadius: '20px',
+                            background: isFavPrivate ? '#e11d48' : '#10b981',
+                            position: 'relative',
+                            transition: 'background-color 0.25s ease'
+                          }}>
+                            {/* スライダーノブ */}
+                            <div style={{
+                              width: '16px',
+                              height: '16px',
+                              borderRadius: '50%',
+                              background: '#ffffff',
+                              position: 'absolute',
+                              top: '3px',
+                              left: isFavPrivate ? '19px' : '3px',
+                              transition: 'left 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.5)'
+                            }} />
+                          </div>
+                          {/* ラベル */}
+                          <span style={{
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            letterSpacing: '0.02em',
+                            color: isFavPrivate ? '#fda4af' : '#6ee7b7'
+                          }}>
+                            {isFavPrivate ? '🔒 非公開（運営・キャスト宛）' : '🌐 全体公開'}
+                          </span>
+                        </div>
                       </div>
 
                       <p style={{ fontSize: '12px', color: '#cbd5e1', margin: '0 0 8px', lineHeight: 1.5 }}>
                         観測対象への想い、刺さったセリフ・仕草、役者さんへのメッセージなどをどうぞ。<br />
                         {isFavPrivate ? (
-                          <span style={{ color: '#fda4af', fontWeight: 700 }}>🔒 非公開設定：他の観測者には公開されず、運営・キャストのみに届きます。</span>
+                          <span style={{ color: '#fda4af', fontWeight: 700 }}>🔒 現在「非公開」設定です：他の観測者には公開されず、運営・キャストのみに届きます。</span>
                         ) : (
-                          <span style={{ color: '#34d399', fontWeight: 700 }}>🌐 公開設定：発行される「戦歴ライセンスカード」やタイムラインに掲載されます。</span>
+                          <span style={{ color: '#34d399', fontWeight: 700 }}>🌐 現在「公開」設定です：発行される「戦歴ライセンスカード」やタイムラインに掲載されます。</span>
                         )}
                       </p>
                       <textarea
@@ -2190,7 +2220,7 @@ export default function App() {
                         style={{
                           width: '100%',
                           background: 'rgba(0, 0, 0, 0.7)',
-                          border: isFavPrivate ? '1.5px solid rgba(148, 163, 184, 0.45)' : '1.5px solid rgba(245, 158, 11, 0.45)',
+                          border: isFavPrivate ? '1.5px solid rgba(244, 63, 94, 0.45)' : '1.5px solid rgba(245, 158, 11, 0.45)',
                           borderRadius: '8px',
                           padding: '12px 14px',
                           color: '#fffbeb',
@@ -2211,7 +2241,7 @@ export default function App() {
                 </h2>
                 <p className="help">
                   アイコンをタップして、気になった人物へ一言どうぞ（何人に書いても・書かなくてもOK）。<br />
-                  <span style={{ color: '#94a3b8' }}>※ 各メッセージごとに「非公開」ボタンで運営・キャスト宛のみに切り替えられます。</span>
+                  <span style={{ color: '#94a3b8' }}>※ トグルスイッチでキャラクターごとに「非公開（運営宛）」へ切り替えられます。</span>
                 </p>
                 
                 <div className="char-comment-box">
@@ -2239,7 +2269,7 @@ export default function App() {
                               {isTracked && !isFav && ' ◈'}
                             </span>
                             <span className="char-grid-status">
-                              {hasText ? (isPrivate ? '非公開記入' : '記入済み') : '未記入'}
+                              {hasText ? (isPrivate ? '🔒非公開' : '🌐公開中') : '未記入'}
                             </span>
                           </div>
                         </div>
@@ -2255,20 +2285,21 @@ export default function App() {
                     const isPrivate = !!answers.characterPrivateFlags?.[curCharId];
 
                     return (
-                      <div className="char-input-card" style={isPrivate ? { borderColor: 'rgba(244, 63, 94, 0.45)', background: 'rgba(15, 23, 42, 0.95)' } : {}}>
-                        <div className="char-input-header">
-                          {curChar.avatar && <img src={curChar.avatar} alt="" />}
-                          <div className="char-meta">
-                            <b>
-                              {curChar.name}
-                              {answers.favoriteCast === curChar.id && <span style={{ color: '#ff716a', fontSize: '12px', marginLeft: '6px' }}>★ 観測対象</span>}
-                            </b>
-                            <span>{curChar.role || curChar.generation} ｜ {curChar.tagline}</span>
+                      <div className="char-input-card" style={isPrivate ? { borderColor: 'rgba(244, 63, 94, 0.55)', background: 'rgba(15, 23, 42, 0.95)', boxShadow: '0 4px 16px rgba(225, 29, 72, 0.15)' } : {}}>
+                        <div className="char-input-header" style={{ flexWrap: 'wrap', gap: '10px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            {curChar.avatar && <img src={curChar.avatar} alt="" />}
+                            <div className="char-meta">
+                              <b>
+                                {curChar.name}
+                                {answers.favoriteCast === curChar.id && <span style={{ color: '#ff716a', fontSize: '12px', marginLeft: '6px' }}>★ 観測対象</span>}
+                              </b>
+                              <span>{curChar.role || curChar.generation} ｜ {curChar.tagline}</span>
+                            </div>
                           </div>
 
-                          {/* 公開 / 非公開トグルボタン */}
-                          <button
-                            type="button"
+                          {/* 視覚的トグルスイッチ（キャラ別手記） */}
+                          <div
                             onClick={() => {
                               setAnswers(prev => ({
                                 ...prev,
@@ -2280,23 +2311,60 @@ export default function App() {
                             }}
                             style={{
                               marginLeft: 'auto',
-                              cursor: 'pointer',
-                              padding: '3px 9px',
-                              borderRadius: '16px',
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              border: isPrivate ? '1px solid rgba(244, 63, 94, 0.5)' : '1px solid rgba(52, 211, 153, 0.5)',
-                              background: isPrivate ? 'rgba(225, 29, 72, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                              color: isPrivate ? '#fda4af' : '#6ee7b7',
-                              display: 'inline-flex',
+                              display: 'flex',
                               alignItems: 'center',
-                              gap: '4px',
-                              transition: 'all 0.2s ease'
+                              gap: '8px',
+                              cursor: 'pointer',
+                              userSelect: 'none',
+                              background: isPrivate ? 'rgba(225, 29, 72, 0.2)' : 'rgba(16, 185, 129, 0.15)',
+                              border: isPrivate ? '1.5px solid rgba(244, 63, 94, 0.6)' : '1.5px solid rgba(52, 211, 153, 0.5)',
+                              padding: '4px 10px 4px 6px',
+                              borderRadius: '24px',
+                              transition: 'all 0.25s ease',
+                              boxShadow: isPrivate ? '0 0 10px rgba(225, 29, 72, 0.25)' : '0 0 10px rgba(16, 185, 129, 0.2)'
                             }}
+                            title="クリックして公開/非公開を切り替え"
                           >
-                            {isPrivate ? '🔒 非公開（運営宛）' : '🌐 公開中'}
-                          </button>
+                            {/* スイッチ本体（トラック） */}
+                            <div style={{
+                              width: '36px',
+                              height: '20px',
+                              borderRadius: '20px',
+                              background: isPrivate ? '#e11d48' : '#10b981',
+                              position: 'relative',
+                              transition: 'background-color 0.25s ease'
+                            }}>
+                              {/* スライダーノブ */}
+                              <div style={{
+                                width: '14px',
+                                height: '14px',
+                                borderRadius: '50%',
+                                background: '#ffffff',
+                                position: 'absolute',
+                                top: '3px',
+                                left: isPrivate ? '19px' : '3px',
+                                transition: 'left 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.5)'
+                              }} />
+                            </div>
+                            {/* ラベル */}
+                            <span style={{
+                              fontSize: '11.5px',
+                              fontWeight: 800,
+                              letterSpacing: '0.02em',
+                              color: isPrivate ? '#fda4af' : '#6ee7b7'
+                            }}>
+                              {isPrivate ? '🔒 非公開' : '🌐 公開中'}
+                            </span>
+                          </div>
                         </div>
+
+                        <p style={{ fontSize: '11px', margin: '4px 0 6px', color: isPrivate ? '#fda4af' : '#94a3b8' }}>
+                          {isPrivate 
+                            ? '🔒 このメッセージは運営・キャストのみに届き、一般公開されません。'
+                            : '🌐 このメッセージは「みんなのカード」掲示板やタイムラインで他の観測者にも公開されます。'}
+                        </p>
+
                         <textarea
                           rows="3"
                           value={val}
@@ -2311,7 +2379,13 @@ export default function App() {
                             }));
                           }}
                           placeholder={`【${curChar.name}】への一言や印象に残ったことなど`}
-                          style={{ marginTop: '4px', fontFamily: 'var(--mincho)', color: '#fffbeb', lineHeight: 1.7 }}
+                          style={{
+                            marginTop: '4px',
+                            fontFamily: 'var(--mincho)',
+                            color: '#fffbeb',
+                            lineHeight: 1.7,
+                            border: isPrivate ? '1px solid rgba(244, 63, 94, 0.4)' : undefined
+                          }}
                         ></textarea>
                       </div>
                     );
@@ -2328,8 +2402,8 @@ export default function App() {
                           const c = CAST_MEMBERS.find(x => x.id === k);
                           const isPriv = !!answers.characterPrivateFlags?.[k];
                           return (
-                            <span key={k} className="char-written-pill" onClick={() => setActiveCommentChar(k)} style={{ cursor: 'pointer', border: isPriv ? '1px solid rgba(244,63,94,0.4)' : undefined }}>
-                              {isPriv && '🔒 '}{c ? c.name.split(' ')[0] : k} ✎
+                            <span key={k} className="char-written-pill" onClick={() => setActiveCommentChar(k)} style={{ cursor: 'pointer', border: isPriv ? '1px solid rgba(244,63,94,0.45)' : undefined, background: isPriv ? 'rgba(225,29,72,0.15)' : undefined }}>
+                              {isPriv ? '🔒 ' : '🌐 '}{c ? c.name.split(' ')[0] : k} ✎
                             </span>
                           );
                         })}
