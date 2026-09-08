@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { CAST_MEMBERS, calculateTitle, TOTAL_SCENES } from '../data/storyData';
 import { sheetApi } from '../services/sheetApi';
 import ResultCard from './ResultCard';
@@ -43,6 +43,10 @@ const mapResponseToCardData = (res, idx) => {
 
   const sceneCount = scenesList.length || Number(res.sceneCount) || 4;
   const syncRate = Number(res.overall) || Number(res.syncRate) || 85;
+  const word = (res.word || res.msg || res.publicComment || '').trim();
+  const best = (res.best || res.highlightScene || '').trim();
+  const impressions = (res.impressions || word || best || '').trim();
+  const routeComment = (res.routeComment || '').trim();
 
   return {
     id: res.obsCode || `sheet-res-${idx}`,
@@ -50,6 +54,8 @@ const mapResponseToCardData = (res, idx) => {
     observerName: res.name || res.observerName || '観測者',
     grade: res.grade || 'その他',
     role: res.role || '観測者',
+    customAvatar: res.avatar || res.customAvatar || null,
+    avatar: res.avatar || res.customAvatar || null,
     loopTrack: { loop1: l1, loop2: l2, loop3: l3 },
     loop1Seen: Array.isArray(res.loop1Seen) ? res.loop1Seen.map(findCastIdByName).filter(Boolean) : [],
     loop2Seen: Array.isArray(res.loop2Seen) ? res.loop2Seen.map(findCastIdByName).filter(Boolean) : [],
@@ -60,11 +66,14 @@ const mapResponseToCardData = (res, idx) => {
     sceneTotal: TOTAL_SCENES,
     sceneRate: Math.round((sceneCount / TOTAL_SCENES) * 100),
     syncRate: syncRate,
-    best: (res.best || res.highlightScene || '').trim(),
-    word: (res.word || res.msg || res.publicComment || '').trim(),
-    highlightScene: (res.best || res.word || '').trim(),
-    publicComment: (res.word || res.msg || res.best || '').trim(),
+    best: best,
+    word: word,
+    highlightScene: best,
+    publicComment: impressions,
+    impressions: impressions,
+    routeComment: routeComment,
     characterComments: res.characterComments || {},
+    characterPrivateFlags: res.characterPrivateFlags || {},
     stamps: res.reactions || { chills: 0, heart: 0 },
     stampUsers: { chills: [], heart: [] },
     time: res.timestamp ? new Date(res.timestamp).toLocaleDateString('ja-JP') : '記録済',
@@ -106,6 +115,9 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
         const syncRate = Number(userCardData.syncRate) || Number(userCardData.overall) || 90;
         const scenesList = Array.isArray(userCardData.scenes) ? userCardData.scenes : [];
         const sceneCount = scenesList.length || userCardData.sceneCount || 4;
+        const uWord = (userCardData.word || userCardData.publicComment || '').trim();
+        const uBest = (userCardData.best || userCardData.highlightScene || '').trim();
+        const uImpressions = (userCardData.impressions || uWord || uBest || '').trim();
 
         list.unshift({
           id: `user-current`,
@@ -113,6 +125,8 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
           observerName: userCardData.observerName || userCardData.name || '観測者',
           grade: userCardData.grade || 'その他',
           role: userCardData.role || '観測者',
+          customAvatar: userCardData.customAvatar || userCardData.avatar || null,
+          avatar: userCardData.customAvatar || userCardData.avatar || null,
           loopTrack: loopTrack,
           loop1Seen: userCardData.loop1Seen || [],
           loop2Seen: userCardData.loop2Seen || [],
@@ -123,11 +137,14 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
           sceneTotal: TOTAL_SCENES,
           sceneRate: Math.round((sceneCount / TOTAL_SCENES) * 100),
           syncRate: syncRate,
-          best: (userCardData.best || userCardData.highlightScene || '').trim(),
-          word: (userCardData.word || userCardData.publicComment || '').trim(),
-          highlightScene: (userCardData.best || userCardData.word || '').trim(),
-          publicComment: (userCardData.word || userCardData.best || '').trim(),
+          best: uBest,
+          word: uWord,
+          highlightScene: uBest,
+          publicComment: uImpressions,
+          impressions: uImpressions,
+          routeComment: (userCardData.routeComment || '').trim(),
           characterComments: userCardData.characterComments || {},
+          characterPrivateFlags: userCardData.characterPrivateFlags || {},
           stamps: { chills: 0, heart: 0 },
           stampUsers: { chills: [], heart: [] },
           time: 'たった今',
@@ -153,7 +170,102 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
     setIsLoading(false);
   };
 
-  // フィルタリング処理
+// 縮小スケールでResultCard全体を完全に表示するギャラリーカードアイテム
+function GalleryCardItem({ card, onSelect }) {
+  const containerRef = useRef(null);
+  const cardInnerRef = useRef(null);
+  const [scale, setScale] = useState(0.58);
+  const [cardHeight, setCardHeight] = useState(720);
+
+  useEffect(() => {
+    const updateScaleAndHeight = () => {
+      if (containerRef.current) {
+        const availableW = containerRef.current.offsetWidth;
+        // ResultCard基準幅は560px
+        const newScale = Math.min(1, Math.max(0.35, availableW / 560));
+        setScale(newScale);
+      }
+      if (cardInnerRef.current) {
+        const h = cardInnerRef.current.offsetHeight;
+        if (h > 0) {
+          setCardHeight(h);
+        }
+      }
+    };
+
+    updateScaleAndHeight();
+    const ro = new ResizeObserver(updateScaleAndHeight);
+    if (containerRef.current) ro.observe(containerRef.current);
+    if (cardInnerRef.current) ro.observe(cardInnerRef.current);
+    window.addEventListener('resize', updateScaleAndHeight);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', updateScaleAndHeight);
+    };
+  }, []);
+
+  return (
+    <div
+      onClick={() => onSelect(card)}
+      className="group relative bg-[#090b10] border border-slate-800 hover:border-emerald-500/60 rounded-2xl p-2.5 sm:p-3.5 shadow-xl hover:shadow-2xl hover:shadow-emerald-950/30 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden hover:-translate-y-1"
+    >
+      {/* カードヘッダー情報バー */}
+      <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80 text-xs">
+        <div className="flex items-center gap-1.5 min-w-0 pr-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+          <span className="font-bold text-slate-100 truncate text-xs sm:text-sm">
+            {card.observerName || '観測者'}
+          </span>
+          <span className="text-[10px] font-mono text-slate-400 px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded shrink-0">
+            {card.obsCode}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 group-hover:text-emerald-300 shrink-0 transition-colors">
+          <span>拡大・保存</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </div>
+      </div>
+
+      {/* 縮小表示コンテナ（比率を完全維持してカードの端から端まで全表示） */}
+      <div
+        ref={containerRef}
+        className="w-full relative flex justify-center items-start overflow-hidden rounded-xl bg-[#06080c] border border-white/5"
+        style={{
+          height: `${Math.ceil(cardHeight * scale)}px`,
+          transition: 'height 0.15s ease-out'
+        }}
+      >
+        <div
+          ref={cardInnerRef}
+          style={{
+            width: '560px',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            pointerEvents: 'none' // ホバーとクリックは親コンテナで快適に処理
+          }}
+        >
+          <ResultCard
+            formData={card}
+            showControls={false}
+          />
+        </div>
+      </div>
+
+      {/* カード下部バー */}
+      <div className="w-full pt-2 mt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+        <span className="font-mono text-[10px]">
+          {card.time || '記録済'}
+        </span>
+        <span className="text-slate-400 text-[10.5px]">
+          タップでライセンス証を全画面表示
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// フィルタリング処理
   const filteredCards = useMemo(() => {
     return cards.filter(card => {
       if (filterLoop !== 'all') {
@@ -176,7 +288,7 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
         const q = searchQuery.toLowerCase();
         const name = (card.observerName || '').toLowerCase();
         const code = (card.obsCode || '').toLowerCase();
-        const comment = (card.publicComment || card.word || card.best || '').toLowerCase();
+        const comment = (card.publicComment || card.word || card.best || card.impressions || '').toLowerCase();
         if (!name.includes(q) && !code.includes(q) && !comment.includes(q)) return false;
       }
 
@@ -199,7 +311,7 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
             </h2>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            全観測者が提出した世界線の観測戦歴カード（アンケート回答記録）を一覧で閲覧・鑑賞できます。
+            全観測者が提出した世界線の観測戦歴カードを一覧で縮小表示しています。タップすると等倍表示・画像保存・共有が可能です。
           </p>
         </div>
 
@@ -272,7 +384,7 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
         </div>
       </div>
 
-      {/* ── 📇 観測戦歴カード一覧（均等な縮尺で一覧表示） ── */}
+      {/* ── 📇 観測戦歴カード一覧（本物のライセンスカードを縮小スケールで完全表示） ── */}
       {filteredCards.length === 0 ? (
         <div className="bg-slate-900/60 border border-dashed border-slate-800 rounded-3xl p-10 sm:p-14 text-center space-y-3 my-6">
           <div className="text-4xl">📂</div>
@@ -282,129 +394,25 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6 sm:gap-8">
-          {filteredCards.map((card, idx) => {
-            const cast1 = CAST_MEMBERS.find(c => c.id === card.loopTrack?.loop1) || CAST_MEMBERS[0];
-            const favCast = CAST_MEMBERS.find(c => c.id === card.favoriteCast) || cast1;
-            const titleInfo = calculateTitle(card.loopTrack || { loop1: 'sakurai', loop2: 'jinnai', loop3: 'nanase' }, card.syncRate || 85);
-
-            return (
-              <div
-                key={card.id || idx}
-                onClick={() => setSelectedCard(card)}
-                className="group relative bg-[#0d1017] border border-slate-800 hover:border-slate-600 rounded-2xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden"
-              >
-                {/* 装飾アクセントライン */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-amber-500 to-emerald-500 opacity-60 group-hover:opacity-100 transition-opacity" />
-
-                <div>
-                  {/* カード上部：公式バッジ ＆ 観測ID */}
-                  <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5 mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[9.5px] font-bold tracking-wider bg-[#b8352f] text-white px-2 py-0.5 rounded">
-                        OBSERVATION RECORD
-                      </span>
-                      <span className="text-[10.5px] font-mono text-slate-400">
-                        FILE:26_094
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-mono font-bold text-slate-300 bg-white/5 border border-white/10 px-2 py-0.5 rounded">
-                      ID: {card.obsCode}
-                    </span>
-                  </div>
-
-                  {/* 観測者名 ＆ 称号 */}
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="min-w-0">
-                      <div className="text-[10px] text-slate-400 font-semibold tracking-wider">
-                        観測者名
-                      </div>
-                      <div className="text-base sm:text-lg font-black text-white truncate flex items-center gap-2">
-                        <span>{card.observerName || '名無しの観測者'}</span>
-                        <span className="text-[10px] text-slate-400 font-normal px-1.5 py-0.5 bg-white/5 border border-white/10 rounded">
-                          {card.grade || '一般'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* 称号 */}
-                    <div className="shrink-0 px-2.5 py-1 bg-red-950/40 border border-red-800/40 rounded-lg flex items-center gap-1.5 text-red-300 text-xs font-serif font-bold">
-                      <Award className="w-3.5 h-3.5 text-red-400" />
-                      <span>〖 {titleInfo.name} 〗</span>
-                    </div>
-                  </div>
-
-                  {/* キャスト画像 ＆ ルート情報 */}
-                  <div className="grid grid-cols-[68px_1fr] gap-3 bg-white/[0.02] border border-white/5 rounded-xl p-2.5 mb-3">
-                    <img
-                      src={favCast?.avatar || cast1.avatar}
-                      alt={favCast?.name || ''}
-                      className="w-[68px] h-[86px] object-cover rounded-lg border border-white/15 bg-slate-950 shrink-0"
-                    />
-                    <div className="min-w-0 flex flex-col justify-between py-0.5 text-xs">
-                      <div>
-                        <div className="text-[10.5px] text-slate-400 mb-1">
-                          追跡ルート軌跡:
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-200">
-                          <span className="px-1.5 py-0.5 rounded bg-sky-500/15 border border-sky-500/30 text-sky-300">
-                            1周: {card.loopTrack?.loop1 ? (CAST_MEMBERS.find(c => c.id === card.loopTrack.loop1)?.lastName || card.loopTrack.loop1) : '櫻井'}
-                          </span>
-                          <span>→</span>
-                          <span className="px-1.5 py-0.5 rounded bg-purple-500/15 border border-purple-500/30 text-purple-300">
-                            2周: {card.loopTrack?.loop2 ? (CAST_MEMBERS.find(c => c.id === card.loopTrack.loop2)?.lastName || card.loopTrack.loop2) : '陣内'}
-                          </span>
-                          <span>→</span>
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
-                            3周: {card.loopTrack?.loop3 ? (CAST_MEMBERS.find(c => c.id === card.loopTrack.loop3)?.lastName || card.loopTrack.loop3) : '矢田'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* 同期率 & シーン */}
-                      <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-2 font-mono">
-                        <div>
-                          同期率: <span className="font-bold text-emerald-400">{card.syncRate || 85}%</span>
-                        </div>
-                        <div>
-                          目撃シーン: <span className="font-bold text-sky-400">{card.sceneCount || 4}箇所</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 観測者の感想・手記抜粋 */}
-                  {(card.publicComment || card.word || card.best) && (
-                    <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs text-slate-300 font-serif leading-relaxed line-clamp-2 mb-2">
-                      “{card.publicComment || card.word || card.best}”
-                    </div>
-                  )}
-                </div>
-
-                {/* カード下部バー */}
-                <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 mt-2">
-                  <span className="font-mono text-[10.5px]">
-                    記録日: {card.time || '記録済'}
-                  </span>
-                  <div className="inline-flex items-center gap-1 text-emerald-400 group-hover:text-emerald-300 text-xs font-bold transition-colors">
-                    <span>ライセンス証を拡大</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {filteredCards.map((card, idx) => (
+            <GalleryCardItem
+              key={card.id || card.obsCode || idx}
+              card={card}
+              onSelect={setSelectedCard}
+            />
+          ))}
         </div>
       )}
 
-      {/* ── 🔍 カード拡大表示モーダル（原寸大のResultCard） ── */}
+      {/* ── 🔍 カード拡大表示モーダル（等倍・フルサイズResultCard） ── */}
       {selectedCard && (
         <div
           className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-fadeIn"
           onClick={() => setSelectedCard(null)}
         >
           <div
-            className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl relative my-auto"
+            className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 閉じるボタン */}
