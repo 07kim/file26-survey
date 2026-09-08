@@ -5,7 +5,7 @@ import { Download, Award, AlertCircle, CheckCircle2, Share2, Copy, Layers, Exter
 import GoogleAuthButton from './GoogleAuthButton';
 import { getStoredUser } from '../utils/googleAuth';
 
-export default function ResultCard({ formData, onScrollToBoard, onReEdit, showControls = true }) {
+export default function ResultCard({ formData, onScrollToBoard, onReEdit, onNewResponse, showControls = true }) {
   const cardRef = useRef(null);
   const [isGeneratingImg, setIsGeneratingImg] = useState(false);
   const [generatedImgUrl, setGeneratedImgUrl] = useState(null);
@@ -687,32 +687,60 @@ export default function ResultCard({ formData, onScrollToBoard, onReEdit, showCo
           </button>
         </div>
 
-        {/* 📝 回答再編集ボタン */}
-        {onReEdit && (
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={onReEdit}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              fontSize: '12px',
-              fontWeight: 700,
-              padding: '9px 14px',
-              background: 'rgba(245, 158, 11, 0.08)',
-              borderColor: 'rgba(245, 158, 11, 0.3)',
-              color: '#fbbf24',
-              borderRadius: '8px',
-              cursor: 'pointer'
-            }}
-          >
-            <span>📝</span>
-            <span>アンケート回答内容を再編集・更新</span>
-          </button>
-        )}
+        {/* 📝 回答再編集 ＆ ➕ 別の回答を送るボタングループ */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {onReEdit && (
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={onReEdit}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                fontWeight: 700,
+                padding: '9px 14px',
+                background: 'rgba(245, 158, 11, 0.08)',
+                borderColor: 'rgba(245, 158, 11, 0.3)',
+                color: '#fbbf24',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              <span>📝</span>
+              <span>アンケート回答内容を再編集・更新</span>
+            </button>
+          )}
+
+          {onNewResponse && (
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={onNewResponse}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                fontWeight: 700,
+                padding: '9px 14px',
+                background: 'rgba(56, 189, 248, 0.08)',
+                borderColor: 'rgba(56, 189, 248, 0.3)',
+                color: '#38bdf8',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              <span>➕</span>
+              <span>別の回答を新しく送信する</span>
+            </button>
+          )}
+        </div>
       </div>
       )}
 

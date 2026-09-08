@@ -818,6 +818,38 @@ export default function App() {
     }
   };
 
+  // 別の回答を新しく送信する
+  const handleNewResponse = () => {
+    const ok = window.confirm(
+      '別の回答を新しく送信しますか？\n\n現在の回答ログとは別に、新しい観測ログ（別のルートや回答内容）を最初から作成・送信できます。'
+    );
+    if (!ok) return;
+
+    let gUser = null;
+    try {
+      const raw = localStorage.getItem('file26_google_user');
+      if (raw) gUser = JSON.parse(raw);
+    } catch (e) {}
+
+    const newAnswers = {
+      ...DEFAULT_ANSWERS,
+      name: gUser?.name || '',
+      email: gUser?.email || '',
+      grade: gUser ? '4年' : '',
+      googleUser: gUser
+    };
+
+    setAnswers(newAnswers);
+    try {
+      localStorage.setItem('file26_survey_answers', JSON.stringify(newAnswers));
+      localStorage.removeItem('file26_survey_submitted_answers');
+    } catch (e) {}
+
+    showStep(1, false);
+    setCurrentTab('survey');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const getWordForValue = (v) => {
     let w = WORDS[0][1];
     for (let i = 0; i < WORDS.length; i++) {
@@ -2607,7 +2639,29 @@ export default function App() {
                     }}
                   >
                     <span>📝</span>
-                    <span>回答内容を再編集・更新する</span>
+                    <span>回答内容を再編集・更新</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleNewResponse}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 14px',
+                      background: 'rgba(56, 189, 248, 0.12)',
+                      border: '1px solid rgba(56, 189, 248, 0.35)',
+                      borderRadius: '8px',
+                      color: '#38bdf8',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+                    }}
+                  >
+                    <span>➕</span>
+                    <span>別の回答を新しく送信</span>
                   </button>
                 </div>
 
@@ -2641,6 +2695,7 @@ export default function App() {
                       setCurrentTab('survey');
                       showStep(1, false);
                     }}
+                    onNewResponse={handleNewResponse}
                   />
                 </div>
 
