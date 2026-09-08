@@ -219,7 +219,7 @@ function GalleryCardItem({ card, onSelect }) {
   }, [cards, filterLoop, filterCast, searchQuery]);
 
   return (
-    <div className="max-w-[1440px] mx-auto py-2 sm:py-4 px-2 sm:px-4 text-left text-slate-100 min-h-screen animate-fadeIn pb-24">
+    <div className="max-w-6xl mx-auto py-2 sm:py-4 px-2 sm:px-4 text-left text-slate-100 min-h-screen animate-fadeIn pb-24">
       {/* ── ヘッダータイトルバー ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-800">
         <div>
@@ -306,7 +306,7 @@ function GalleryCardItem({ card, onSelect }) {
         </div>
       </div>
 
-      {/* ── 📇 観測戦歴カード一覧（程よい余白とバランスで並ぶグリッド） ── */}
+      {/* ── 📇 観測戦歴カード一覧（コンパクトなミニカードがびっしり並ぶ高密度ギャラリー） ── */}
       {filteredCards.length === 0 ? (
         <div className="bg-slate-900/60 border border-dashed border-slate-800 rounded-3xl p-10 sm:p-14 text-center space-y-3 my-6">
           <div className="text-4xl">📂</div>
@@ -316,7 +316,12 @@ function GalleryCardItem({ card, onSelect }) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 justify-center">
+        <div 
+          className="grid gap-2.5 sm:gap-3.5 justify-center w-full"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))'
+          }}
+        >
           {filteredCards.map((card, idx) => (
             <GalleryCardItem
               key={card.id || card.obsCode || idx}
