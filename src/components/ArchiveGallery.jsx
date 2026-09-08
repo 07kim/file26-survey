@@ -170,11 +170,11 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
     setIsLoading(false);
   };
 
-// 縮小スケールでResultCard全体を完全に表示するギャラリーカードアイテム
+// 縮小スケールでResultCard全体を完全に表示するギャラリーカードアイテム（コンパクト設計）
 function GalleryCardItem({ card, onSelect }) {
   const containerRef = useRef(null);
   const cardInnerRef = useRef(null);
-  const [scale, setScale] = useState(0.58);
+  const [scale, setScale] = useState(0.42);
   const [cardHeight, setCardHeight] = useState(720);
 
   useEffect(() => {
@@ -182,7 +182,7 @@ function GalleryCardItem({ card, onSelect }) {
       if (containerRef.current) {
         const availableW = containerRef.current.offsetWidth;
         // ResultCard基準幅は560px
-        const newScale = Math.min(1, Math.max(0.35, availableW / 560));
+        const newScale = Math.min(1, Math.max(0.25, availableW / 560));
         setScale(newScale);
       }
       if (cardInnerRef.current) {
@@ -208,29 +208,25 @@ function GalleryCardItem({ card, onSelect }) {
   return (
     <div
       onClick={() => onSelect(card)}
-      className="group relative bg-[#090b10] border border-slate-800 hover:border-emerald-500/60 rounded-2xl p-2.5 sm:p-3.5 shadow-xl hover:shadow-2xl hover:shadow-emerald-950/30 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden hover:-translate-y-1"
+      className="group relative bg-[#090b10] border border-slate-800 hover:border-emerald-500/70 rounded-xl p-1.5 sm:p-2.5 shadow-md hover:shadow-xl hover:shadow-emerald-950/30 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden hover:-translate-y-1"
     >
-      {/* カードヘッダー情報バー */}
-      <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80 text-xs">
-        <div className="flex items-center gap-1.5 min-w-0 pr-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
-          <span className="font-bold text-slate-100 truncate text-xs sm:text-sm">
+      {/* カード上部：観測者名 ＆ ObsCode */}
+      <div className="w-full flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-800/80 text-[11px]">
+        <div className="flex items-center gap-1 min-w-0 pr-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+          <span className="font-bold text-slate-100 truncate text-[11px] sm:text-xs">
             {card.observerName || '観測者'}
           </span>
-          <span className="text-[10px] font-mono text-slate-400 px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded shrink-0">
-            {card.obsCode}
-          </span>
         </div>
-        <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 group-hover:text-emerald-300 shrink-0 transition-colors">
-          <span>拡大・保存</span>
-          <ExternalLink className="w-3.5 h-3.5" />
-        </div>
+        <span className="text-[9.5px] font-mono text-slate-400 px-1 py-0.2 bg-slate-900 border border-slate-800 rounded shrink-0">
+          {card.obsCode}
+        </span>
       </div>
 
       {/* 縮小表示コンテナ（比率を完全維持してカードの端から端まで全表示） */}
       <div
         ref={containerRef}
-        className="w-full relative flex justify-center items-start overflow-hidden rounded-xl bg-[#06080c] border border-white/5"
+        className="w-full relative flex justify-center items-start overflow-hidden rounded-lg bg-[#06080c] border border-white/5"
         style={{
           height: `${Math.ceil(cardHeight * scale)}px`,
           transition: 'height 0.15s ease-out'
@@ -242,7 +238,7 @@ function GalleryCardItem({ card, onSelect }) {
             width: '560px',
             transform: `scale(${scale})`,
             transformOrigin: 'top center',
-            pointerEvents: 'none' // ホバーとクリックは親コンテナで快適に処理
+            pointerEvents: 'none'
           }}
         >
           <ResultCard
@@ -253,13 +249,14 @@ function GalleryCardItem({ card, onSelect }) {
       </div>
 
       {/* カード下部バー */}
-      <div className="w-full pt-2 mt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-        <span className="font-mono text-[10px]">
+      <div className="w-full pt-1.5 mt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+        <span className="font-mono text-[9px] truncate">
           {card.time || '記録済'}
         </span>
-        <span className="text-slate-400 text-[10.5px]">
-          タップでライセンス証を全画面表示
-        </span>
+        <div className="text-[10px] text-emerald-400 font-bold flex items-center gap-0.5 group-hover:text-emerald-300 shrink-0">
+          <span>拡大</span>
+          <ExternalLink className="w-2.5 h-2.5" />
+        </div>
       </div>
     </div>
   );
@@ -297,7 +294,7 @@ function GalleryCardItem({ card, onSelect }) {
   }, [cards, filterLoop, filterCast, searchQuery]);
 
   return (
-    <div className="max-w-6xl mx-auto py-2 sm:py-4 px-2 sm:px-4 text-left text-slate-100 min-h-screen animate-fadeIn pb-24">
+    <div className="max-w-[1440px] mx-auto py-2 sm:py-4 px-2 sm:px-4 text-left text-slate-100 min-h-screen animate-fadeIn pb-24">
       {/* ── ヘッダータイトルバー ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-800">
         <div>
@@ -311,7 +308,7 @@ function GalleryCardItem({ card, onSelect }) {
             </h2>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            全観測者が提出した世界線の観測戦歴カードを一覧で縮小表示しています。タップすると等倍表示・画像保存・共有が可能です。
+            全観測者の戦歴カードを一覧表示しています。カードをタップすると等倍表示・画像保存・共有が可能です。
           </p>
         </div>
 
@@ -330,7 +327,7 @@ function GalleryCardItem({ card, onSelect }) {
       </div>
 
       {/* ── 検索 ＆ 絞り込みコントロールバー ── */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-2.5 sm:p-3 mb-6 shadow-md space-y-2.5">
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-2.5 sm:p-3 mb-5 shadow-md space-y-2.5">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           {/* 検索入力 */}
           <div className="relative w-full sm:flex-1">
@@ -384,7 +381,7 @@ function GalleryCardItem({ card, onSelect }) {
         </div>
       </div>
 
-      {/* ── 📇 観測戦歴カード一覧（本物のライセンスカードを縮小スケールで完全表示） ── */}
+      {/* ── 📇 観測戦歴カード一覧（スマホ2列、タブレット3〜4列、PC4〜5列でコンパクトにたくさん並ぶ） ── */}
       {filteredCards.length === 0 ? (
         <div className="bg-slate-900/60 border border-dashed border-slate-800 rounded-3xl p-10 sm:p-14 text-center space-y-3 my-6">
           <div className="text-4xl">📂</div>
@@ -394,7 +391,7 @@ function GalleryCardItem({ card, onSelect }) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-4">
           {filteredCards.map((card, idx) => (
             <GalleryCardItem
               key={card.id || card.obsCode || idx}
