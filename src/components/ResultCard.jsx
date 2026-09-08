@@ -426,33 +426,33 @@ export default function ResultCard({ formData, onScrollToBoard, onReEdit, showCo
               </div>
             </div>
 
-            {/* 💬 推しへのメッセージ・手記 */}
-            {favMessage && (
-              <div style={{
-                marginTop: '12px',
-                padding: '12px 14px',
-                background: 'rgba(15, 23, 42, 0.75)',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
-                borderRadius: '8px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '12px' }}>💬</span>
-                  <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '10.5px', letterSpacing: '0.08em' }}>
-                    {primaryCast.name} への観測手記・メッセージ
-                  </span>
-                </div>
-                <div style={{
-                  fontSize: '12.5px',
-                  color: '#fffbeb',
-                  lineHeight: 1.7,
-                  fontFamily: 'var(--mincho)',
-                  whiteSpace: 'pre-wrap'
-                }}>
-                  “{favMessage}”
-                </div>
+            {/* 💬 推しへのメッセージ・手記（未記入でも枠を維持して長さ統一） */}
+            <div style={{
+              marginTop: '12px',
+              padding: '10px 14px',
+              background: 'rgba(15, 23, 42, 0.75)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+              minHeight: '56px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
+                <span style={{ fontSize: '11px' }}>💬</span>
+                <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '10.5px', letterSpacing: '0.08em' }}>
+                  {primaryCast.name} への観測手記・メッセージ
+                </span>
               </div>
-            )}
+              <div style={{
+                fontSize: '12px',
+                color: favMessage ? '#fffbeb' : '#64748b',
+                lineHeight: 1.6,
+                fontFamily: 'var(--mincho)',
+                whiteSpace: 'pre-wrap',
+                fontStyle: favMessage ? 'normal' : 'italic'
+              }}>
+                {favMessage ? `“${favMessage}”` : '— （未記録） —'}
+              </div>
+            </div>
           </div>
 
           {/* 4. 周回追跡タイムライン ＆ レーダーチャート */}
@@ -522,84 +522,61 @@ export default function ResultCard({ formData, onScrollToBoard, onReEdit, showCo
             </div>
           </div>
 
-          {/* 5. 👁️ 忘れられない場面・セリフ（最も印象的なシーン手記） */}
-          {(formData.best || formData.highlightScene) && (
-            <div style={{
-              background: 'rgba(15, 23, 42, 0.75)',
-              border: '1px solid rgba(56, 189, 248, 0.25)',
-              padding: '12px 14px',
-              marginBottom: '12px',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-                <span style={{ fontSize: '11px' }}>👁️</span>
-                <span style={{ fontSize: '10px', color: '#38bdf8', letterSpacing: '0.08em', fontWeight: 800 }}>
-                  忘れられない場面・セリフ
-                </span>
-              </div>
-              <div style={{
-                fontSize: '12.5px',
-                fontFamily: 'var(--mincho)',
-                color: '#f0f9ff',
-                lineHeight: 1.7,
-                whiteSpace: 'pre-wrap'
-              }}>
-                “{formData.best || formData.highlightScene}”
-              </div>
+          {/* 5. 👁️ 忘れられない場面・セリフ（最も印象的なシーン手記：未記入でも枠を維持） */}
+          <div style={{
+            background: 'rgba(15, 23, 42, 0.75)',
+            border: '1px solid rgba(56, 189, 248, 0.25)',
+            padding: '10px 14px',
+            marginBottom: '10px',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+            minHeight: '62px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
+              <span style={{ fontSize: '11px' }}>👁️</span>
+              <span style={{ fontSize: '10px', color: '#38bdf8', letterSpacing: '0.08em', fontWeight: 800 }}>
+                忘れられない場面・セリフ
+              </span>
             </div>
-          )}
+            <div style={{
+              fontSize: '12px',
+              fontFamily: 'var(--mincho)',
+              color: (formData.best || formData.highlightScene) ? '#f0f9ff' : '#64748b',
+              lineHeight: 1.6,
+              whiteSpace: 'pre-wrap',
+              fontStyle: (formData.best || formData.highlightScene) ? 'normal' : 'italic'
+            }}>
+              {(formData.best || formData.highlightScene) ? `“${formData.best || formData.highlightScene}”` : '— （未記録） —'}
+            </div>
+          </div>
 
-          {/* 6. 📜 観測者の言葉・全体の感想・考察 */}
-          {(formData.impressions || formData.routeComment || formData.word) && (
-            <div style={{
-              background: 'rgba(15, 23, 42, 0.75)',
-              border: '1px solid rgba(245, 158, 11, 0.25)',
-              padding: '12px 14px',
-              marginBottom: '14px',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-                <span style={{ fontSize: '11px' }}>📜</span>
-                <span style={{ fontSize: '10px', color: '#fbbf24', letterSpacing: '0.08em', fontWeight: 800 }}>
-                  {formData.word ? `感想：${formData.word}` : '観測者の感想・手記'}
-                </span>
-              </div>
-              {formData.impressions && (
-                <div style={{
-                  fontSize: '12.5px',
-                  fontFamily: 'var(--mincho)',
-                  color: '#fffbeb',
-                  lineHeight: 1.7,
-                  whiteSpace: 'pre-wrap',
-                  marginBottom: formData.routeComment ? '10px' : '0'
-                }}>
-                  {formData.impressions}
-                </div>
-              )}
-              {formData.routeComment && (
-                <div style={{
-                  borderTop: formData.impressions ? '1px dashed rgba(245, 158, 11, 0.2)' : 'none',
-                  paddingTop: formData.impressions ? '8px' : '0',
-                  marginTop: formData.impressions ? '8px' : '0'
-                }}>
-                  <div style={{ fontSize: '9.5px', color: '#38bdf8', fontWeight: 700, marginBottom: '4px', letterSpacing: '0.05em' }}>
-                    🧭 選択ルートの考察・所感:
-                  </div>
-                  <div style={{
-                    fontSize: '12px',
-                    fontFamily: 'var(--mincho)',
-                    color: '#e2e8f0',
-                    lineHeight: 1.6,
-                    whiteSpace: 'pre-wrap'
-                  }}>
-                    {formData.routeComment}
-                  </div>
-                </div>
-              )}
+          {/* 6. 📜 観測者の言葉・全体の感想・考察（未記入でも枠を維持） */}
+          <div style={{
+            background: 'rgba(15, 23, 42, 0.75)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+            padding: '10px 14px',
+            marginBottom: '12px',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+            minHeight: '62px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
+              <span style={{ fontSize: '11px' }}>📜</span>
+              <span style={{ fontSize: '10px', color: '#fbbf24', letterSpacing: '0.08em', fontWeight: 800 }}>
+                {formData.word ? `感想：${formData.word}` : '観測者の感想・手記'}
+              </span>
             </div>
-          )}
+            <div style={{
+              fontSize: '12px',
+              fontFamily: 'var(--mincho)',
+              color: (formData.impressions || formData.routeComment || formData.word) ? '#fffbeb' : '#64748b',
+              lineHeight: 1.6,
+              whiteSpace: 'pre-wrap',
+              fontStyle: (formData.impressions || formData.routeComment || formData.word) ? 'normal' : 'italic'
+            }}>
+              {(formData.impressions || formData.word) || (formData.routeComment) || '— （未記録） —'}
+            </div>
+          </div>
 
           {/* 6. 未観測ピース */}
           <div style={{
