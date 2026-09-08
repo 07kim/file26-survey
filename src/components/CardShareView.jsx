@@ -3,7 +3,7 @@ import ResultCard from './ResultCard';
 import { Share2, Check, Download, ArrowRight, Edit3, ShieldAlert, Award } from 'lucide-react';
 import { CAST_MEMBERS } from '../data/storyData';
 
-export default function CardShareView({ cardData, onGoToSurvey, onGoToCrosstalk, onGoToCharacters }) {
+export default function CardShareView({ cardData, onGoToSurvey, onNewResponse, onGoToCrosstalk, onGoToCharacters }) {
   const [copied, setCopied] = useState(false);
 
   // カードデータ（URL引数またはprops）
@@ -77,6 +77,7 @@ export default function CardShareView({ cardData, onGoToSurvey, onGoToCrosstalk,
           formData={finalCardData}
           onScrollToBoard={onGoToCrosstalk}
           onReEdit={onGoToSurvey}
+          onNewResponse={onNewResponse}
         />
       </div>
     </div>

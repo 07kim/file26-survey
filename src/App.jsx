@@ -923,6 +923,7 @@ export default function App() {
                 setStep(1);
                 handleTabChange('survey');
               }}
+              onNewResponse={handleNewResponse}
               onGoToCrosstalk={() => handleTabChange('crosstalk')}
               onGoToCharacters={() => handleTabChange('characters')}
             />
