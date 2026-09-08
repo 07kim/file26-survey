@@ -291,6 +291,29 @@ class SheetApiService {
       return null;
     }
   }
+
+  /**
+   * 不具合・バグ報告の送信
+   */
+  async reportBug(bugData) {
+    try {
+      const body = {
+        key: this.key,
+        action: 'reportBug',
+        data: bugData
+      };
+      const res = await fetch(this.endpoint, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(body)
+      });
+      return await res.json();
+    } catch (error) {
+      console.warn('[SheetAPI] reportBug failed:', error);
+      return { ok: false, error: error.message };
+    }
+  }
 }
 
 export const sheetApi = new SheetApiService();

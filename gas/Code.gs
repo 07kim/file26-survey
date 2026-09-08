@@ -26,7 +26,8 @@ const SHEETS = {
   CROSSTALK: "時空通信",
   CAST_NOTES: "キャスト手記",
   DRAFTS: "途中保存進捗",
-  REPLIES: "返信ログ"
+  REPLIES: "返信ログ",
+  BUGS: "不具合報告"
 };
 
 // =========================================================================
@@ -258,6 +259,9 @@ function doPost(e) {
 
       case "toggleReaction":
         return responseJSON(ReactionController.toggle(ss, body.data));
+
+      case "reportBug":
+        return responseJSON(BugController.create(ss, body.data));
 
       case "initDatabase":
         initSpreadsheet();
@@ -924,6 +928,38 @@ const CastNotesController = {
       });
     }
     return list;
+  }
+};
+
+/**
+ * 不具合・バグ報告コントローラー
+ */
+const BugController = {
+  create: function(ss, data) {
+    let sheet = ss.getSheetByName(SHEETS.BUGS);
+    if (!sheet) {
+      sheet = ss.insertSheet(SHEETS.BUGS);
+      const headers = [
+        "日時", "報告者名", "不具合内容", "発生タブ", "ステップ番号", "ブラウザ情報", "画面サイズ", "URL", "ステータス"
+      ];
+      sheet.appendRow(headers);
+    }
+
+    const now = new Date();
+    const newRow = [
+      now,
+      data.name || "匿名",
+      data.message || "",
+      data.currentTab || "survey",
+      data.currentStep || 0,
+      data.userAgent || "",
+      data.screenSize || "",
+      data.url || "",
+      "未対応"
+    ];
+
+    sheet.appendRow(newRow);
+    return { ok: true, message: "バグ報告を受理しました" };
   }
 };
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ShieldAlert, FileText, MessageCircle, Layers, Edit3, Clock, ScrollText, Share2, Check, Award, ShieldCheck, User, LogOut, Lock } from 'lucide-react';
+import { ShieldAlert, FileText, MessageCircle, Layers, Edit3, Clock, ScrollText, Share2, Check, Award, ShieldCheck, User, LogOut, Lock, AlertCircle } from 'lucide-react';
 import { getStoredUser, logoutGoogleUser, parseJwt, saveGoogleUser, getActiveClientId } from '../utils/googleAuth';
+import BugReportModal from './BugReportModal';
 
 export default function Header({ currentStep, totalSteps, currentTab, setTab, onEasterEgg, isUnlocked = true }) {
   const [tapCount, setTapCount] = useState(0);
@@ -9,6 +10,7 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
   const [copied, setCopied] = useState(false);
   const [googleUser, setGoogleUser] = useState(() => getStoredUser());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isBugModalOpen, setIsBugModalOpen] = useState(false);
   const headerGoogleBtnRef = useRef(null);
 
   useEffect(() => {
@@ -165,6 +167,17 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
               </button>
             )}
 
+            {/* バグ報告ボタン（スマホ） */}
+            <button
+              type="button"
+              onClick={() => setIsBugModalOpen(true)}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10.5px] font-bold bg-slate-50 border border-slate-200 hover:border-amber-500 text-slate-700 shadow-xs cursor-pointer hover:bg-amber-500/10 hover:text-amber-700 transition-colors"
+              title="不具合・バグ報告"
+            >
+              <AlertCircle className="w-3 h-3 text-amber-600" />
+              <span>バグ報告</span>
+            </button>
+
             {/* 共有ボタン */}
             <button
               type="button"
@@ -292,6 +305,17 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
             </button>
           )}
 
+          {/* バグ報告ボタン（PC） */}
+          <button
+            type="button"
+            onClick={() => setIsBugModalOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-50 border border-slate-200 hover:border-amber-500 text-slate-700 shadow-xs transition-all cursor-pointer hover:bg-amber-500/10 hover:text-amber-700"
+            title="不具合・バグ報告"
+          >
+            <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+            <span>バグ報告</span>
+          </button>
+
           <button
             type="button"
             onClick={handleShareDirectLink}
@@ -316,6 +340,15 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
           </button>
         </div>
       </div>
+
+      {/* 🐛 バグ報告モーダル */}
+      <BugReportModal
+        isOpen={isBugModalOpen}
+        onClose={() => setIsBugModalOpen(false)}
+        currentTab={currentTab}
+        currentStep={currentStep}
+        defaultName={googleUser?.name || ''}
+      />
 
       {/* 🔐 ヘッダー用 Google 認証モーダル（createPortalで画面中央に確実に配置し見切れを完全防止） */}
       {isAuthModalOpen && typeof document !== 'undefined' && createPortal(
