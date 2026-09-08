@@ -11,8 +11,8 @@ export const CAST_MEMBERS = [
     route: "順路C「出会いと別れ」",
     tagline: "叶わぬ恋・100年後への想い",
     color: "#dc2626",
-    avatar: "/casts/櫻井.png",
-    posterImage: "/assets/route_c_sakurai.jpg",
+    avatar: "/casts/櫻井.webp",
+    posterImage: "/assets/route_c_sakurai.webp",
     desc: "100年後の未来で七瀬いろはと出会い、交わらぬ運命に心を揺さぶられる。"
   },
   {
@@ -25,8 +25,8 @@ export const CAST_MEMBERS = [
     route: "順路A「解決」",
     tagline: "事件解決・真実の追求",
     color: "#2563eb",
-    avatar: "/casts/矢田.png",
-    posterImage: "/assets/route_a_yada.jpg",
+    avatar: "/casts/矢田.webp",
+    posterImage: "/assets/route_a_yada.webp",
     desc: "未来の学友会に接触し、深澤・陣内の助力を得てタイムマシンを起動。"
   },
   {
@@ -39,8 +39,8 @@ export const CAST_MEMBERS = [
     route: "順路B「背景と心情」",
     tagline: "背景と心情・バタフライエフェクト",
     color: "#d97706",
-    avatar: "/casts/鷺坂.png",
-    posterImage: "/assets/route_b_sagisaka.jpg",
+    avatar: "/casts/鷺坂.webp",
+    posterImage: "/assets/route_b_sagisaka.webp",
     desc: "彼女の小さなうっかりと心の揺らぎが、予期せぬ運命の歪みを生む。"
   },
   {
@@ -53,8 +53,8 @@ export const CAST_MEMBERS = [
     route: "24期追跡",
     tagline: "櫻井の後輩・相棒",
     color: "#0284c7",
-    avatar: "/casts/渡辺.png",
-    posterImage: "/assets/route_loop3_four.jpg",
+    avatar: "/casts/渡辺.webp",
+    posterImage: "/assets/route_loop3_four.webp",
     desc: "櫻井と共に行動し、共に事件の渦中へ巻き込まれていく。"
   },
   {
@@ -67,8 +67,8 @@ export const CAST_MEMBERS = [
     route: "順路D「欲望と葛藤」",
     tagline: "欲望と葛藤・歪む運命",
     color: "#059669",
-    avatar: "/casts/下山田.png",
-    posterImage: "/assets/route_d_uzawa.jpg",
+    avatar: "/casts/下山田.webp",
+    posterImage: "/assets/route_d_uzawa.webp",
     desc: "未来の自分の姿を見てしまい、成功への欲望から資料を写真で持ち帰る。"
   },
 
@@ -83,8 +83,8 @@ export const CAST_MEMBERS = [
     route: "100年後接触",
     tagline: "100年後の少女",
     color: "#ec4899",
-    avatar: "/casts/七瀬.png",
-    posterImage: "/casts/七瀬.png",
+    avatar: "/casts/七瀬.webp",
+    posterImage: "/casts/七瀬.webp",
     desc: "討議室1で櫻井と出会う。未来に残ろうとする櫻井を引き止める。"
   },
   {
@@ -97,8 +97,8 @@ export const CAST_MEMBERS = [
     route: "124期接触",
     tagline: "タイムマシンのヒント",
     color: "#4f46e5",
-    avatar: "/casts/陣内.png",
-    posterImage: "/casts/陣内.png",
+    avatar: "/casts/陣内.webp",
+    posterImage: "/casts/陣内.webp",
     desc: "研修室2のPCにタイムマシンの手がかりを残し、矢田たちをサポート。"
   },
   {
@@ -111,8 +111,8 @@ export const CAST_MEMBERS = [
     route: "124期接触",
     tagline: "124期のキーマン",
     color: "#0891b2",
-    avatar: "/casts/深澤.png",
-    posterImage: "/casts/深澤.png",
+    avatar: "/casts/深澤.webp",
+    posterImage: "/casts/深澤.webp",
     desc: "タイムマシンの秘密を知る相談相手であり、現代への帰還に協力。"
   },
   {
@@ -125,8 +125,8 @@ export const CAST_MEMBERS = [
     route: "124期仲間",
     tagline: "比嘉の相方",
     color: "#0d9488",
-    avatar: "/casts/外園.png",
-    posterImage: "/casts/外園.png",
+    avatar: "/casts/外園.webp",
+    posterImage: "/casts/外園.webp",
     desc: "比嘉と共に学友会を支える仲間。"
   },
   {
@@ -139,8 +139,8 @@ export const CAST_MEMBERS = [
     route: "124期相方",
     tagline: "外園の相方",
     color: "#ca8a04",
-    avatar: "/casts/比嘉.png",
-    posterImage: "/casts/比嘉.png",
+    avatar: "/casts/比嘉.webp",
+    posterImage: "/casts/比嘉.webp",
     desc: "外園の相方として行動する執行委員。"
   },
   {
@@ -153,8 +153,8 @@ export const CAST_MEMBERS = [
     route: "100年後未来",
     tagline: "100年後の謎",
     color: "#64748b",
-    avatar: "/casts/犬飼.png",
-    posterImage: "/casts/犬飼.png",
+    avatar: "/casts/犬飼.webp",
+    posterImage: "/casts/犬飼.webp",
     desc: "100年後の世界で七瀬やメンバーと接触する謎の人物。"
   },
   {
@@ -167,8 +167,8 @@ export const CAST_MEMBERS = [
     route: "首謀者追跡",
     tagline: "無限ループの首謀者",
     color: "#7c3aed",
-    avatar: "/casts/森野.png",
-    posterImage: "/casts/森野.png",
+    avatar: "/casts/森野.webp",
+    posterImage: "/casts/森野.webp",
     desc: "1年半前の学友会解散に納得がいかず、タイムマシンを引き起こした。",
     isSelectable: false // アンケートの追尾選択肢からは除外
   },
@@ -184,8 +184,8 @@ export const CAST_MEMBERS = [
     route: "順路無視「音のする方へ」",
     tagline: "音のする方へ直感移動",
     color: "#9333ea",
-    avatar: "/assets/route_f_free.jpg",
-    posterImage: "/assets/route_f_free.jpg",
+    avatar: "/assets/route_f_free.webp",
+    posterImage: "/assets/route_f_free.webp",
     desc: "順路に縛られず、館内に響く足音や声、物音だけを追跡した。"
   },
   {
@@ -198,8 +198,8 @@ export const CAST_MEMBERS = [
     route: "順路F「自由」",
     tagline: "気になる部屋を単独探索",
     color: "#334155",
-    avatar: "/assets/route_f_free.jpg",
-    posterImage: "/assets/route_f_free.jpg",
+    avatar: "/assets/route_f_free.webp",
+    posterImage: "/assets/route_f_free.webp",
     desc: "暗い部屋や資料、誰もいない空間を思うがままに歩き回った。"
   }
 ];

@@ -3030,19 +3030,19 @@ export default function App() {
         )}
       </div>
 
-      {/* ── SECTION 03専用: 画面下部マップフローティングアイコン ───────── */}
+      {/* ── SECTION 03専用: 画面下部マップフローティングアイコン（MAP表示中は×に切り替わる） ───────── */}
       {step === 3 && currentTab === 'survey' && (
         <div
           style={{
             position: 'fixed',
             right: 'max(16px, calc((100vw - 680px) / 2 + 16px))',
             bottom: 'calc(80px + env(safe-area-inset-bottom))',
-            zIndex: 50
+            zIndex: 100001
           }}
         >
           <button
             type="button"
-            onClick={() => setIsMapModalOpen(true)}
+            onClick={() => setIsMapModalOpen(prev => !prev)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -3050,10 +3050,14 @@ export default function App() {
               width: '48px',
               height: '48px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%)',
-              color: '#fbbf24',
-              border: '1.5px solid rgba(245, 158, 11, 0.75)',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.7), 0 0 16px rgba(245, 158, 11, 0.35)',
+              background: isMapModalOpen
+                ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(185, 28, 28, 0.95) 100%)'
+                : 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%)',
+              color: isMapModalOpen ? '#fff' : '#fbbf24',
+              border: isMapModalOpen ? '1.5px solid #f87171' : '1.5px solid rgba(245, 158, 11, 0.75)',
+              boxShadow: isMapModalOpen
+                ? '0 8px 24px rgba(0, 0, 0, 0.7), 0 0 16px rgba(239, 68, 68, 0.4)'
+                : '0 8px 24px rgba(0, 0, 0, 0.7), 0 0 16px rgba(245, 158, 11, 0.35)',
               backdropFilter: 'blur(10px)',
               WebkitBackdropFilter: 'blur(10px)',
               cursor: 'pointer',
@@ -3061,30 +3065,30 @@ export default function App() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px) scale(1.08)';
-              e.currentTarget.style.borderColor = '#fbbf24';
-              e.currentTarget.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.8), 0 0 24px rgba(245, 158, 11, 0.55)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.75)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.7), 0 0 16px rgba(245, 158, 11, 0.35)';
             }}
-            title="会場MAPを表示"
-            aria-label="会場MAPを表示"
+            title={isMapModalOpen ? "MAPを閉じる" : "会場MAPを表示"}
+            aria-label={isMapModalOpen ? "MAPを閉じる" : "会場MAPを表示"}
           >
-            <MapIcon style={{ width: '22px', height: '22px', color: '#fbbf24' }} />
+            {isMapModalOpen ? (
+              <CloseIcon style={{ width: '22px', height: '22px', color: '#fff' }} />
+            ) : (
+              <MapIcon style={{ width: '22px', height: '22px', color: '#fbbf24' }} />
+            )}
           </button>
         </div>
       )}
 
-      {/* ── 会場MAPフルスクリーン表示オーバーレイ（完全透過仕様） ───────── */}
+      {/* ── 会場MAPフルスクリーン表示オーバーレイ（完全透過仕様・シンプルUI） ───────── */}
       {isMapModalOpen && typeof document !== 'undefined' && createPortal(
         <div
           style={{
             position: 'fixed',
             inset: 0,
             zIndex: 99999,
-            background: 'rgba(0, 0, 0, 0.15)', // 極薄のタップ判定用背景（下の文字が完全に読める）
+            background: 'rgba(0, 0, 0, 0.2)', // 極薄のタップ判定用背景（下の文字が完全に読める）
             backdropFilter: 'none',
             WebkitBackdropFilter: 'none',
             display: 'flex',
@@ -3093,74 +3097,6 @@ export default function App() {
           }}
           onClick={() => setIsMapModalOpen(false)}
         >
-          {/* フローティングヘッダーバー（透過を邪魔しないスタイリッシュなUI） */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '12px 18px calc(12px + env(safe-area-inset-top))',
-              pointerEvents: 'none',
-              zIndex: 10
-            }}
-          >
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '6px 14px',
-                borderRadius: '9999px',
-                background: 'rgba(15, 23, 42, 0.9)',
-                border: '1px solid rgba(245, 158, 11, 0.6)',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.6)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                pointerEvents: 'auto'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <MapIcon style={{ width: '16px', height: '16px', color: '#fbbf24' }} />
-              <span style={{ fontSize: '12px', fontWeight: 800, color: '#fff', letterSpacing: '0.04em' }}>
-                会場MAPオーバーレイ
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsMapModalOpen(false)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 16px',
-                background: 'rgba(15, 23, 42, 0.92)',
-                border: '1.5px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '9999px',
-                color: '#fff',
-                fontSize: '13px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.6)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                pointerEvents: 'auto',
-                transition: 'all 0.15s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(184, 53, 47, 0.9)';
-                e.currentTarget.style.borderColor = '#ff716a';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(15, 23, 42, 0.92)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-              }}
-            >
-              <CloseIcon style={{ width: '16px', height: '16px' }} />
-              <span>閉じる (✕)</span>
-            </button>
-          </div>
-
           {/* 画像表示エリア（完全透過背景で下の文字が透けて見える） */}
           <div
             style={{
@@ -3169,21 +3105,21 @@ export default function App() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '8px sm:16px',
+              padding: '16px',
               position: 'relative',
               touchAction: 'pinch-zoom'
             }}
             onClick={() => setIsMapModalOpen(false)}
           >
             <img
-              src="/MAP.png"
+              src="/MAP.webp"
               alt="会場MAP"
               style={{
                 maxWidth: '96%',
-                maxHeight: 'calc(100vh - 120px)',
+                maxHeight: 'calc(100vh - 80px)',
                 objectFit: 'contain',
-                opacity: 0.88,
-                filter: 'drop-shadow(0 15px 30px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.25))',
+                opacity: 0.92,
+                filter: 'drop-shadow(0 15px 30px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.25))',
                 cursor: 'default',
                 pointerEvents: 'auto',
                 transition: 'opacity 0.2s ease'
@@ -3192,38 +3128,14 @@ export default function App() {
                 e.currentTarget.style.opacity = '1';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = '0.88';
+                e.currentTarget.style.opacity = '0.92';
               }}
               onClick={(e) => {
-                // 画像タップ時は閉じないようにする
+                // 画像タップ時も閉じるようにする
                 e.stopPropagation();
+                setIsMapModalOpen(false);
               }}
             />
-          </div>
-
-          {/* モーダルフッター（極薄バッジガイド） */}
-          <div
-            style={{
-              padding: '6px 16px calc(8px + env(safe-area-inset-bottom))',
-              textAlign: 'center',
-              pointerEvents: 'none'
-            }}
-          >
-            <span
-              style={{
-                display: 'inline-block',
-                fontSize: '11px',
-                color: '#cbd5e1',
-                background: 'rgba(15, 23, 42, 0.8)',
-                padding: '4px 12px',
-                borderRadius: '9999px',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(4px)',
-                WebkitBackdropFilter: 'blur(4px)'
-              }}
-            >
-              ※ 画面のどこかをタップすると閉じます
-            </span>
           </div>
         </div>,
         document.body
