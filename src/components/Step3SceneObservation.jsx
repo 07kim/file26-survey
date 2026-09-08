@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, Check, Sparkles, MapPin, Eye, Compass, HelpCircle } from 'lucide-react';
-import { SCENES, TOTAL_SCENES } from '../data/storyData';
+import { SCENES, TOTAL_SCENES, CAST_MEMBERS } from '../data/storyData';
 
 export default function Step3SceneObservation({ formData, updateFormData, onNext, onPrev }) {
   const [selectedScenes, setSelectedScenes] = useState(formData.scenes || []);
@@ -58,15 +58,21 @@ export default function Step3SceneObservation({ formData, updateFormData, onNext
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 animate-fade-in text-left">
-      {/* 設問ヘッダー */}
-      <div className="text-center mb-6">
-        <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#ff716a] bg-[#b8352f]/20 px-3 py-1 rounded border border-[#b8352f]/40 shadow-sm">
-          SECTION 03 ／ 場面の観測
-        </span>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-2 tracking-tight">
-          あなたが「実際に見た場面」
+      {/* 機密ファイル風ヘッダー */}
+      <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 sm:p-8 relative overflow-hidden backdrop-blur-md shadow-2xl mb-6">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[#b8352f]/10 rounded-bl-full pointer-events-none" />
+        
+        <div className="flex items-center justify-between mb-3">
+          <span className="px-2.5 py-1 rounded text-[11px] font-mono font-bold tracking-widest bg-[#b8352f]/20 text-[#ff716a] border border-[#b8352f]/40 shadow-sm">
+            SECTION 03 ／ 場面観測ログ
+          </span>
+          <span className="text-xs font-mono font-medium text-slate-400">TOTAL: {TOTAL_SCENES} SCENES</span>
+        </div>
+
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">
+          観測できた場面の特定
         </h2>
-        <p className="text-sm sm:text-[15px] text-slate-300 mt-2 text-pretty-ja max-w-xl mx-auto leading-relaxed">
+        <p className="text-slate-300 text-sm sm:text-[15px] leading-relaxed text-pretty-ja">
           当てはまるものをすべて選んでください（複数選択可）。その場に居合わせた、扉の隙間から見た、なども含みます。
         </p>
       </div>
@@ -98,13 +104,36 @@ export default function Step3SceneObservation({ formData, updateFormData, onNext
                       {item.time}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs sm:text-[13px] font-bold flex items-center justify-between">
+                      <div className="text-xs sm:text-[13px] font-bold flex items-center justify-between gap-1.5">
                         <span className="text-white text-pretty-ja">{item.place} ｜ {item.title}</span>
-                        {isSelected && (
-                          <span className="w-4 h-4 rounded-full bg-[#ff4a42] text-white flex items-center justify-center text-[10px] ml-1.5 shrink-0 shadow-sm">
-                            ✓
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1 shrink-0">
+                          {item.casts?.length > 0 && (
+                            <div className="flex items-center">
+                              {item.casts.map((cId, idx) => {
+                                const c = CAST_MEMBERS.find(x => x.id === cId);
+                                if (!c || !c.avatar) return null;
+                                return (
+                                  <img
+                                    key={cId}
+                                    src={c.avatar}
+                                    alt={c.name}
+                                    title={c.name}
+                                    className="w-4 h-4 rounded-full object-cover border border-slate-600 shadow-xs"
+                                    style={{
+                                      marginLeft: idx > 0 ? '-4px' : '0',
+                                      zIndex: item.casts.length - idx
+                                    }}
+                                  />
+                                );
+                              })}
+                            </div>
+                          )}
+                          {isSelected && (
+                            <span className="w-4 h-4 rounded-full bg-[#ff4a42] text-white flex items-center justify-center text-[10px] ml-1 shrink-0 shadow-sm">
+                              ✓
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="text-xs text-slate-300 mt-1 leading-snug text-pretty-ja">
                         {item.desc}

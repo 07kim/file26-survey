@@ -1640,7 +1640,37 @@ export default function App() {
                                 }
                               }}
                             >
-                              <span className="t">{item.time}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', width: '100%', marginBottom: '2px' }}>
+                                <span className="t">{item.time}</span>
+                                {item.casts?.length > 0 && (
+                                  <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
+                                    {item.casts.map((cId, idx) => {
+                                      const c = CAST_MEMBERS.find(x => x.id === cId);
+                                      if (!c || !c.avatar) return null;
+                                      return (
+                                        <img
+                                          key={cId}
+                                          src={c.avatar}
+                                          alt={c.name}
+                                          title={c.name}
+                                          style={{
+                                            width: '18px',
+                                            height: '18px',
+                                            borderRadius: '50%',
+                                            objectFit: 'cover',
+                                            objectPosition: 'center 15%',
+                                            border: '1px solid rgba(255, 255, 255, 0.4)',
+                                            marginLeft: idx > 0 ? '-6px' : '0',
+                                            background: '#0f172a',
+                                            boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+                                            zIndex: item.casts.length - idx
+                                          }}
+                                        />
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
                               <span className="b">
                                 {item.place}｜{item.title}
                                 <em>{item.desc}</em>
