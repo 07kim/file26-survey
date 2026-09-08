@@ -92,7 +92,7 @@ export default function Step1Auth({ formData, updateFormData, onNext, onPrev }) 
           <span className="px-2.5 py-1 rounded text-[11px] font-mono font-bold tracking-widest bg-[#b8352f]/20 text-[#ff716a] border border-[#b8352f]/40 shadow-sm">
             SECTION 01 ／ 観測者について
           </span>
-          <span className="text-xs font-mono font-medium text-slate-400">EVENT_ID: 26_094</span>
+          <span className="text-xs font-mono font-medium text-slate-400">EVENT_ID: 26__094</span>
         </div>
 
         <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">

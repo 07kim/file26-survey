@@ -205,7 +205,7 @@ export default function ResultCard({ formData, onScrollToBoard, onReEdit, onNewR
     setGeneratedImgUrl(dataUrl);
 
     const link = document.createElement('a');
-    link.download = `File26_094_OBSERVATION_${obsCode}.png`;
+    link.download = `File26__094_OBSERVATION_${obsCode}.png`;
     link.href = dataUrl;
     document.body.appendChild(link);
     link.click();
@@ -218,7 +218,7 @@ export default function ResultCard({ formData, onScrollToBoard, onReEdit, onNewR
   };
 
   const handleCopyLink = () => {
-    const text = `【File:26_094 観測記録】\n観測者: ${formData.observerName || 'OBSERVER'}\n称号: 〖${titleInfo.name}〗\n観測率: ${sceneRate}%\n観測コード: ${obsCode}\nhttps://file26-survey.vercel.app`;
+    const text = `【File:26__094 観測記録】\n観測者: ${formData.observerName || 'OBSERVER'}\n称号: 〖${titleInfo.name}〗\n観測率: ${sceneRate}%\n観測コード: ${obsCode}\nhttps://file26-survey.vercel.app`;
     navigator.clipboard.writeText(text);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
@@ -279,7 +279,7 @@ export default function ResultCard({ formData, onScrollToBoard, onReEdit, onNewR
                 OBSERVATION RECORD
               </span>
               <span style={{ fontSize: '11px', fontFamily: 'var(--gothic)', letterSpacing: '0.15em', color: '#94a3b8' }}>
-                FILE:26_094
+                FILE:26__094
               </span>
             </div>
             <div style={{ textAlign: 'right' }}>

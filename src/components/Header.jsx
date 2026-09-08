@@ -89,7 +89,7 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
           <div 
             onClick={handleLogoTap}
             className="flex items-center gap-2 cursor-pointer select-none group shrink-0"
-            title="File:26_094 機密データアクセス"
+            title="File:26__094 機密データアクセス"
           >
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-[#b8352f]/10 border border-[#b8352f]/30 flex items-center justify-center text-[#b8352f] group-hover:scale-105 transition-transform shadow-sm">
               <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -97,7 +97,7 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-orbitron font-extrabold tracking-wider text-xs sm:text-base text-slate-900">
-                  File:26_094
+                  File:26__094
                 </span>
                 <span className="text-[8.5px] sm:text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 rounded bg-[#b8352f] text-white tracking-widest shadow-xs">
                   PORTAL

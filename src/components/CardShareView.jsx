@@ -64,7 +64,7 @@ export default function CardShareView({ cardData, onGoToSurvey, onNewResponse, o
           <Award className="w-3.5 h-3.5" /> OFFICIAL OBSERVER LICENSE SHOWCASE
         </span>
         <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-          File:26_094 観測戦歴ライセンスカード
+          File:26__094 観測戦歴ライセンスカード
         </h2>
         <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-lg mx-auto">
           観測者 <strong className="text-white font-bold">{finalCardData.observerName}</strong> が体験した世界線の観測記録・周回タイムラインです。

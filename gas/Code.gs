@@ -5,7 +5,7 @@
  * =========================================================================
  * 
  * 【設定手順】
- * 1. Google スプレッドシートを新規作成（名前例:「File:26_094 観測ログDB」）
+ * 1. Google スプレッドシートを新規作成（名前例:「File:26__094 観測ログDB」）
  * 2. メニュー「拡張機能」>「Apps Script」を開く
  * 3. 既存コードをすべて消去し、このファイルの内容を貼り付けて保存（⌘+S / Ctrl+S）
  * 4. 関数「initSpreadsheet」を選択して「実行」（初回は権限承認ダイアログが出ます）
@@ -155,7 +155,7 @@ function initSpreadsheet() {
     ss.deleteSheet(defaultSheet);
   }
 
-  Logger.log("✅ File:26_094 スプレッドシートDBの初期化が完了しました！");
+  Logger.log("✅ File:26__094 スプレッドシートDBの初期化が完了しました！");
 }
 
 // =========================================================================
@@ -206,7 +206,7 @@ function doGet(e) {
         });
 
       default:
-        return responseJSON({ ok: true, status: "File:26_094 DB Online", action: action });
+        return responseJSON({ ok: true, status: "File:26__094 DB Online", action: action });
     }
   } catch (error) {
     return responseJSON({ ok: false, error: error.toString() }, 500);

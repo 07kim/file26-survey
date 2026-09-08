@@ -24,7 +24,7 @@ import { Map as MapIcon, X as CloseIcon, ZoomIn } from 'lucide-react';
 const CONFIG = {
   ENDPOINT: "https://script.google.com/macros/s/AKfycbzSIoQ0twEVCQvCAslmO-ka1FMUEwzv5ONeS2mKmJoPr_LdWAuV89EhzkGHe-iftQ5L/exec",
   FORM_KEY: "kanso-26094-xyz",
-  EVENT_ID: "26_094"
+  EVENT_ID: "26__094"
 };
 
 // 選択可能な人物リスト（森野などの非選択キャラクターを除く）
@@ -1094,7 +1094,7 @@ export default function App() {
             {step === 0 && (
               <section className="scr s0-container" id="s0">
                 <div className="kicker">IMMERSIVE THEATER</div>
-                <div className="folder"><span className="ic"></span>File:26_094</div>
+                <div className="folder"><span className="ic"></span>File:26__094</div>
                 <p className="lede">
                   <span>2026/9/4 09:44、</span><span>シャトレーゼホテル韮崎の森。</span><br />
                   <span>あの日あなたは</span><span>「観測者」でした。</span><br />

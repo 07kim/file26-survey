@@ -204,7 +204,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `File26_094_Survey_Responses_${Date.now()}.csv`;
+    link.download = `File26__094_Survey_Responses_${Date.now()}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -218,7 +218,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
             <Lock className="w-8 h-8" />
           </div>
           <h2 className="text-xl font-black text-white tracking-tight mb-1">
-            File:26_094 管理者コンソール
+            File:26__094 管理者コンソール
           </h2>
           <p className="text-xs text-slate-400 mb-6">
             観測者アンケート・時空通信の全データを閲覧するにはアクセスキーを入力してください。
@@ -274,7 +274,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
             <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#ff716a] bg-[#b8352f]/15 px-2.5 py-0.5 rounded border border-[#b8352f]/40">
               ADMINISTRATIVE CONSOLE
             </span>
-            <span className="text-xs text-slate-400 font-mono">FILE:26_094 DB</span>
+            <span className="text-xs text-slate-400 font-mono">FILE:26__094 DB</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
             <span>観測ログ ＆ 全アンケート回答閲覧システム</span>

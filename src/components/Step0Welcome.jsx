@@ -12,7 +12,7 @@ export default function Step0Welcome({ onStart }) {
       </div>
 
       <div className="text-2xl sm:text-4xl font-orbitron font-extrabold tracking-tight text-white mb-6 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-        <span className="text-[#ff4a42] drop-shadow-[0_0_12px_rgba(255,74,66,0.3)]">File:26_094</span>
+        <span className="text-[#ff4a42] drop-shadow-[0_0_12px_rgba(255,74,66,0.3)]">File:26__094</span>
         <span className="text-slate-300 font-normal text-lg sm:text-2xl">／ 観測記録提出</span>
       </div>
 

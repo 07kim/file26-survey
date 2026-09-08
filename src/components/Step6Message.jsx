@@ -12,7 +12,7 @@ export default function Step6Message({ formData, updateFormData, onSubmit, onPre
     if (isSubmitting) {
       setSubmissionLogs([]);
       const steps = [
-        { title: "① 観測プロトコル暗号化", status: "ok", detail: `OBSERVER: ${formData.observerName || 'UNKNOWN'} / ID: 26_094` },
+        { title: "① 観測プロトコル暗号化", status: "ok", detail: `OBSERVER: ${formData.observerName || 'UNKNOWN'} / ID: 26__094` },
         { title: "② トークン同期（GET Nonce）", status: "ok", detail: "nonce_token: " + Math.random().toString(36).slice(2) + "..." },
         { title: "③ 観測ログ送信（POST / Sheet同期）", status: "ok", detail: `ROUTE: ${formData.primaryRoute} / SYNC: ${formData.syncRate}%` },
         { title: "④ 時空アーカイブ記録完了", status: "ok", detail: "STATUS: 200 OK - すべての観測データが正常に同期されました" }

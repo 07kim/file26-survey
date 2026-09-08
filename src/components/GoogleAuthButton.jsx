@@ -290,7 +290,7 @@ export default function GoogleAuthButton({ onAuthSuccess, onLogout, currentObsCo
                 </svg>
                 <span className="font-bold text-sm text-white">Google アカウント自動認証</span>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono">File:26_094</span>
+              <span className="text-[10px] text-slate-400 font-mono">File:26__094</span>
             </div>
 
             <p className="text-xs text-slate-300 mb-4 leading-relaxed">
