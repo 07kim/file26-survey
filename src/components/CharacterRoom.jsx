@@ -174,6 +174,74 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
     }, 1200);
   };
 
+  const [privacyToast, setPrivacyToast] = useState('');
+
+  // 🔒 投稿済み手記の公開/非公開を切り替えるトグルハンドラー
+  const handleToggleMsgPrivacy = async (msgId, castId) => {
+    const targetMsg = (messages[castId] || []).find(m => m.id === msgId);
+    if (!targetMsg) return;
+
+    const nextIsPrivate = !targetMsg.isPrivate;
+
+    // 1. ローカルメッセージステートの更新
+    setMessages(prev => ({
+      ...prev,
+      [castId]: (prev[castId] || []).map(m =>
+        m.id === msgId ? { ...m, isPrivate: nextIsPrivate } : m
+      )
+    }));
+
+    // 2. 親コンポーネント・回答データの更新
+    if (onUpdateFormData) {
+      onUpdateFormData({
+        characterComments: {
+          ...(userAnswers?.characterComments || {}),
+          [castId]: {
+            text: targetMsg.text,
+            isPrivate: nextIsPrivate
+          }
+        },
+        characterPrivateFlags: {
+          ...(userAnswers?.characterPrivateFlags || {}),
+          [castId]: nextIsPrivate
+        }
+      });
+    }
+
+    // 3. ローカルストレージの同期
+    try {
+      const stored = localStorage.getItem('file26_survey_submitted_answers');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        parsed.characterComments = parsed.characterComments || {};
+        parsed.characterComments[castId] = {
+          text: targetMsg.text,
+          isPrivate: nextIsPrivate
+        };
+        parsed.characterPrivateFlags = parsed.characterPrivateFlags || {};
+        parsed.characterPrivateFlags[castId] = nextIsPrivate;
+        localStorage.setItem('file26_survey_submitted_answers', JSON.stringify(parsed));
+      }
+    } catch (e) {}
+
+    // 4. スプレッドシート（サーバー）への同期
+    try {
+      await sheetApi.editSurveyPost({
+        obsCode: userAnswers?.obsCode,
+        googleEmail: userAnswers?.googleEmail,
+        postType: 'cast',
+        targetCast: castId,
+        message: targetMsg.text,
+        isPrivate: nextIsPrivate
+      });
+    } catch (err) {
+      console.warn('Failed to sync privacy status:', err);
+    }
+
+    setPrivacyToast(nextIsPrivate ? '🔒 手記を非公開に設定しました（運営・キャストのみに届きます）' : '🌐 手記を全体公開に設定しました！');
+    setTimeout(() => setPrivacyToast(''), 3000);
+  };
+
   const handleLikeMsg = (msgId) => {
     if (likedMap[msgId]) return;
     setLikedMap(prev => ({ ...prev, [msgId]: true }));
@@ -202,7 +270,14 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
   const totalMsgsCount = Object.values(messages).reduce((sum, arr) => sum + arr.length, 0);
 
   return (
-    <div className="max-w-5xl mx-auto p-2 sm:p-4 animate-fadeIn text-left pb-20">
+    <div className="max-w-5xl mx-auto p-2 sm:p-4 animate-fadeIn text-left pb-20 relative">
+      {/* ── トースト通知 ── */}
+      {privacyToast && (
+        <div className="fixed bottom-6 right-4 sm:right-8 z-50 bg-slate-900/95 border border-amber-500/60 text-white px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 animate-fadeIn backdrop-blur-md">
+          <span>{privacyToast}</span>
+        </div>
+      )}
+
       {/* ── ヘッダーバー ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-2 border-b border-slate-800">
         <div>
@@ -345,7 +420,26 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
                   </p>
                 </div>
 
-                <div className="pt-2 mt-2 border-t border-slate-800/60 flex items-center justify-end">
+                <div className="pt-2 mt-2 border-t border-slate-800/60 flex items-center justify-between gap-2">
+                  {/* 🔒 自分の手記の場合: 公開/非公開切り替えトグル */}
+                  {msg.isMe ? (
+                    <button
+                      type="button"
+                      onClick={() => handleToggleMsgPrivacy(msg.id, selectedCharId)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold border transition-all cursor-pointer shadow-xs ${
+                        msg.isPrivate
+                          ? 'bg-amber-500/20 border-amber-500/60 text-amber-300 hover:bg-amber-500/30'
+                          : 'bg-emerald-500/15 border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/25'
+                      }`}
+                      title={msg.isPrivate ? 'タップして全体公開に変更' : 'タップして非公開に変更'}
+                    >
+                      <span className="text-xs">{msg.isPrivate ? '🔒' : '🌐'}</span>
+                      <span>{msg.isPrivate ? '非公開中 (タップで公開)' : '公開中 (タップで非公開)'}</span>
+                    </button>
+                  ) : (
+                    <div />
+                  )}
+
                   <button
                     type="button"
                     onClick={() => handleLikeMsg(msg.id)}

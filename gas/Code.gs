@@ -533,7 +533,7 @@ const SurveyController = {
     const rows = sheet.getDataRange().getValues();
     if (rows.length <= 1) return { ok: false, error: "No survey records" };
 
-    const { obsCode, googleEmail, postType, targetCast, message } = data;
+    const { obsCode, googleEmail, postType, targetCast, message, isPrivate } = data;
     for (let i = 1; i < rows.length; i++) {
       const r = rows[i];
       const matchCode = obsCode && r[1] && r[1].toString().trim() === obsCode.toString().trim();
@@ -542,17 +542,26 @@ const SurveyController = {
       if (matchCode || matchEmail) {
         const rowIdx = i + 1;
         if (postType === 'comment') {
-          sheet.getRange(rowIdx, 32).setValue(message || ""); // routeComment (32列目)
+          sheet.getRange(rowIdx, 32).setValue(message !== undefined ? message : r[31]); // routeComment (32列目)
         } else if (postType === 'scene') {
-          sheet.getRange(rowIdx, 25).setValue(message || ""); // best (25列目)
+          sheet.getRange(rowIdx, 25).setValue(message !== undefined ? message : r[24]); // best (25列目)
         } else if (postType === 'cast' && targetCast) {
           const charComments = DBHelper.parseJSON(r[28], {});
-          charComments[targetCast] = message || "";
+          const currentVal = charComments[targetCast];
+          const currentText = typeof currentVal === 'object' && currentVal !== null ? (currentVal.text || '') : String(currentVal || '');
+          const newText = message !== undefined ? message : currentText;
+          const currentIsPrivate = typeof currentVal === 'object' && currentVal !== null ? !!currentVal.isPrivate : false;
+          const newIsPrivate = isPrivate !== undefined ? !!isPrivate : currentIsPrivate;
+
+          charComments[targetCast] = {
+            text: newText,
+            isPrivate: newIsPrivate
+          };
           sheet.getRange(rowIdx, 29).setValue(JSON.stringify(charComments));
         } else if (postType === 'msg') {
-          sheet.getRange(rowIdx, 28).setValue(message || ""); // msg (28列目)
+          sheet.getRange(rowIdx, 28).setValue(message !== undefined ? message : r[27]); // msg (28列目)
         }
-        return { ok: true, message: "アンケート感想ログを更新しました" };
+        return { ok: true, message: "アンケート感想ログ（公開設定/本文）を更新しました" };
       }
     }
     return { ok: false, error: "Target survey response not found" };

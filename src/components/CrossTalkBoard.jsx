@@ -921,6 +921,77 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
     setEditDraftCategory(post.category || 'question');
   };
 
+  // 🔒 投稿の公開/非公開を直接切り替えるトグルハンドラー
+  const handleTogglePostPrivacy = async (post) => {
+    if (!post) return;
+    const targetId = post.id;
+    const nextIsPrivate = !post.isPrivate;
+
+    // 1. ローカルタイムラインの即時更新
+    setTimeline(prev => prev.map(p => {
+      if (p.id === targetId) {
+        return {
+          ...p,
+          isPrivate: nextIsPrivate
+        };
+      }
+      return p;
+    }));
+
+    // 2. 種類に応じた更新
+    if (typeof targetId === 'string' && (targetId.startsWith('survey-') || targetId.startsWith('my-'))) {
+      let postType = 'comment';
+      let targetCast = '';
+      if (post.category === 'scene' || post.best) {
+        postType = 'scene';
+      } else if (post.category === 'favorite' || post.category === 'cast_note') {
+        if (post.targetCast && post.targetCast !== 'all') {
+          postType = 'cast';
+          targetCast = post.targetCast;
+        } else {
+          postType = 'msg';
+        }
+      }
+
+      if (onUpdateFormData) {
+        onUpdateFormData(prev => {
+          const next = { ...prev };
+          if (postType === 'cast' && targetCast) {
+            next.characterComments = { ...(next.characterComments || {}) };
+            const currentObj = next.characterComments[targetCast];
+            const currentText = typeof currentObj === 'object' && currentObj !== null ? currentObj.text : currentObj;
+            next.characterComments[targetCast] = {
+              text: currentText || post.message,
+              isPrivate: nextIsPrivate
+            };
+            next.characterPrivateFlags = { ...(next.characterPrivateFlags || {}), [targetCast]: nextIsPrivate };
+          }
+          return next;
+        });
+      }
+
+      try {
+        await sheetApi.editSurveyPost({
+          obsCode: post.obsCode || formData.obsCode,
+          googleEmail: post.googleEmail || formData.googleEmail,
+          postType: postType,
+          targetCast: targetCast,
+          message: post.message,
+          isPrivate: nextIsPrivate
+        });
+      } catch (e) {}
+    } else {
+      try {
+        await sheetApi.editCrossTalk({
+          id: targetId,
+          isPrivate: nextIsPrivate
+        });
+      } catch (e) {}
+    }
+
+    showToast(nextIsPrivate ? '🔒 投稿を非公開に設定しました（自分のみ表示されます）' : '🌐 投稿を全体公開に設定しました！');
+  };
+
   // 編集用 宛先ルートGUI選択トグル
   const handleToggleEditTargetCast = (castId, loopMode = editDraftTargetLoop) => {
     const key = loopMode === 'all' ? castId : `loop${loopMode}_${castId}`;
@@ -1562,9 +1633,22 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
                             </span>
                           </div>
 
-                          {/* ⚙️ 自分の投稿の場合の編集・削除ボタン */}
+                          {/* ⚙️ 自分の投稿の場合の公開/非公開・編集・削除ボタン */}
                           {isMyPost(post) && (
                             <div className="flex items-center gap-1 shrink-0 ml-auto">
+                              <button
+                                type="button"
+                                onClick={() => handleTogglePostPrivacy(post)}
+                                className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer text-xs flex items-center gap-1 border font-bold ${
+                                  post.isPrivate
+                                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30'
+                                    : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25'
+                                }`}
+                                title={post.isPrivate ? 'タップして全体公開に変更' : 'タップして非公開に変更'}
+                              >
+                                <span className="text-[11px]">{post.isPrivate ? '🔒' : '🌐'}</span>
+                                <span className="text-[10.5px]">{post.isPrivate ? '非公開中' : '公開中'}</span>
+                              </button>
                               <button
                                 type="button"
                                 onClick={() => handleOpenEdit(post)}
