@@ -847,7 +847,7 @@ export default function App() {
           localStorage.setItem('file26_survey_submitted_answers', JSON.stringify(payload));
         } catch (e) {}
         setIsSubmitting(false);
-        showToast("🎉 観測記録を提出しました！全タブ（感想・キャラ手記・カード一覧）が解放されました！");
+        showToast("観測記録を提出しました。他タブ（感想・キャラ手記・カード一覧）が解放されました。");
         showStep(7, false);
       }, 600);
       return;
@@ -872,9 +872,9 @@ export default function App() {
       } catch (e) {}
       setIsSubmitting(false);
       if (j.isUpdate) {
-        showToast("🔄 回答記録を最新の内容に更新しました！全タブが閲覧可能です");
+        showToast("回答記録を最新の内容に更新しました。全タブが閲覧可能です。");
       } else {
-        showToast("🎉 観測記録を提出しました！全タブ（感想・キャラ手記・カード一覧）が解放されました！");
+        showToast("観測記録を提出しました。他タブ（感想・キャラ手記・カード一覧）が解放されました。");
       }
       showStep(7, false);
     } catch (err) {
@@ -2404,7 +2404,7 @@ export default function App() {
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
                               <span style={{ fontSize: '11px', color: isFavPrivate ? '#fda4af' : '#ff716a', fontWeight: 800, letterSpacing: '0.08em' }}>
-                                💖 最推し【{favP.name}】への手記 ＆ メッセージ
+                                ◈ 最重要観測対象【{favP.name}】への手記 ＆ メッセージ
                               </span>
                             </div>
                             <div style={{ fontSize: '17px', fontWeight: 900, color: '#fff' }}>
@@ -2413,7 +2413,7 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* 視覚的トグルスイッチ（推し手記） */}
+                        {/* 視覚的トグルスイッチ（推し手記・位置固定設計） */}
                         <div
                           onClick={() => {
                             setAnswers(prev => ({
@@ -2425,7 +2425,7 @@ export default function App() {
                             }));
                           }}
                           style={{
-                            display: 'flex',
+                            display: 'inline-flex',
                             alignItems: 'center',
                             gap: '8px',
                             cursor: 'pointer',
@@ -2434,8 +2434,10 @@ export default function App() {
                             border: isFavPrivate ? '1.5px solid rgba(244, 63, 94, 0.6)' : '1.5px solid rgba(52, 211, 153, 0.5)',
                             padding: '4px 10px 4px 6px',
                             borderRadius: '24px',
-                            transition: 'all 0.25s ease',
-                            boxShadow: isFavPrivate ? '0 0 12px rgba(225, 29, 72, 0.25)' : '0 0 12px rgba(16, 185, 129, 0.2)'
+                            transition: 'background-color 0.2s ease, border-color 0.2s ease',
+                            boxShadow: isFavPrivate ? '0 0 12px rgba(225, 29, 72, 0.25)' : '0 0 12px rgba(16, 185, 129, 0.2)',
+                            flexShrink: 0,
+                            marginLeft: 'auto'
                           }}
                           title="クリックして公開/非公開を切り替え"
                         >
@@ -2446,7 +2448,8 @@ export default function App() {
                             borderRadius: '20px',
                             background: isFavPrivate ? '#e11d48' : '#10b981',
                             position: 'relative',
-                            transition: 'background-color 0.25s ease'
+                            transition: 'background-color 0.25s ease',
+                            flexShrink: 0
                           }}>
                             {/* スライダーノブ */}
                             <div style={{
@@ -2461,24 +2464,26 @@ export default function App() {
                               boxShadow: '0 1px 3px rgba(0,0,0,0.5)'
                             }} />
                           </div>
-                          {/* ラベル */}
+                          {/* ラベル（幅を固定して位置ブレを防止） */}
                           <span style={{
+                            width: '46px',
+                            textAlign: 'center',
                             fontSize: '12px',
                             fontWeight: 800,
                             letterSpacing: '0.02em',
                             color: isFavPrivate ? '#fda4af' : '#6ee7b7'
                           }}>
-                            {isFavPrivate ? '🔒 非公開（運営・キャスト宛）' : '🌐 全体公開'}
+                            {isFavPrivate ? '非公開' : '公開'}
                           </span>
                         </div>
                       </div>
 
                       <p style={{ fontSize: '12px', color: '#cbd5e1', margin: '0 0 8px', lineHeight: 1.5 }}>
-                        最推しキャストへの熱い想い、刺さったセリフ・仕草、役者さんへのメッセージなどをどうぞ。<br />
+                        最推しキャストへの想い、刺さったセリフ・仕草、役者さんへのメッセージなどをどうぞ。<br />
                         {isFavPrivate ? (
-                          <span style={{ color: '#fda4af', fontWeight: 700 }}>🔒 現在「非公開」設定です：他の観測者には公開されず、運営・キャストのみに届きます。</span>
+                          <span style={{ color: '#fda4af', fontWeight: 700 }}>現在「非公開」設定です：他の観測者には公開されず、運営・キャストのみに届きます。</span>
                         ) : (
-                          <span style={{ color: '#34d399', fontWeight: 700 }}>🌐 現在「公開」設定です：発行される「戦歴ライセンスカード」やタイムラインに掲載されます。</span>
+                          <span style={{ color: '#34d399', fontWeight: 700 }}>現在「公開」設定です：発行される「戦歴ライセンスカード」やタイムラインに掲載されます。</span>
                         )}
                       </p>
                       <textarea
@@ -2515,7 +2520,7 @@ export default function App() {
                 <h2 className="q">
                   <span className="no">QUESTION 20 ／ 任意</span>
                   他のキャラクターたちへのメッセージ・観測手記。
-                  <span className="badge-public">🌐 全体に公開（個別非公開可）</span>
+                  <span className="badge-public">全体に公開（個別非公開可）</span>
                 </h2>
                 <p className="help">
                   推しキャラ以外の登場人物にも、心に残ったシーンや演技、伝えたい言葉があればご自由にどうぞ（何人に書いても・空欄でもOK）。<br />
@@ -2538,16 +2543,16 @@ export default function App() {
                           className={`char-grid-btn ${isActive ? 'active' : ''} ${hasText ? 'has-text' : ''}`}
                           onClick={() => setActiveCommentChar(p.id)}
                         >
-                          {hasText && <span className="char-grid-badge">{isPrivate ? '🔒' : '✓'}</span>}
+                          {hasText && <span className="char-grid-badge">{isPrivate ? '密' : '✓'}</span>}
                           {p.avatar && <img src={p.avatar} alt="" />}
                           <div className="char-grid-info">
                             <span className="char-grid-name">
                               {p.name.split(' ')[0]}
-                              {isFav && <span style={{ color: '#ff716a', fontWeight: 'bold' }}> 💖</span>}
+                              {isFav && <span style={{ color: '#ff716a', fontWeight: 'bold' }}> ★</span>}
                               {isTracked && !isFav && ' ◈'}
                             </span>
                             <span className="char-grid-status">
-                              {isFav ? '💖推し' : (hasText ? (isPrivate ? '🔒非公開' : '🌐公開中') : '未記入')}
+                              {isFav ? '★最推し' : (hasText ? (isPrivate ? '非公開' : '公開中') : '未記入')}
                             </span>
                           </div>
                         </div>
@@ -2571,13 +2576,13 @@ export default function App() {
                             <div className="char-meta">
                               <b>
                                 {curChar.name}
-                                {isFav && <span style={{ color: '#ff716a', fontSize: '12px', marginLeft: '6px' }}>💖 Q19推しキャラ</span>}
+                                {isFav && <span style={{ color: '#ff716a', fontSize: '12px', marginLeft: '6px' }}>★ Q19最推し</span>}
                               </b>
                               <span>{curChar.role || curChar.generation} ｜ {curChar.tagline}</span>
                             </div>
                           </div>
 
-                          {/* 視覚的トグルスイッチ（キャラ別手記） */}
+                          {/* 視覚的トグルスイッチ（キャラ別手記・位置固定設計） */}
                           <div
                             onClick={() => {
                               setAnswers(prev => ({
@@ -2590,7 +2595,7 @@ export default function App() {
                             }}
                             style={{
                               marginLeft: 'auto',
-                              display: 'flex',
+                              display: 'inline-flex',
                               alignItems: 'center',
                               gap: '8px',
                               cursor: 'pointer',
@@ -2599,8 +2604,9 @@ export default function App() {
                               border: isPrivate ? '1.5px solid rgba(244, 63, 94, 0.6)' : '1.5px solid rgba(52, 211, 153, 0.5)',
                               padding: '4px 10px 4px 6px',
                               borderRadius: '24px',
-                              transition: 'all 0.25s ease',
-                              boxShadow: isPrivate ? '0 0 10px rgba(225, 29, 72, 0.25)' : '0 0 10px rgba(16, 185, 129, 0.2)'
+                              transition: 'background-color 0.2s ease, border-color 0.2s ease',
+                              boxShadow: isPrivate ? '0 0 10px rgba(225, 29, 72, 0.25)' : '0 0 10px rgba(16, 185, 129, 0.2)',
+                              flexShrink: 0
                             }}
                             title="クリックして公開/非公開を切り替え"
                           >
@@ -2611,7 +2617,8 @@ export default function App() {
                               borderRadius: '20px',
                               background: isPrivate ? '#e11d48' : '#10b981',
                               position: 'relative',
-                              transition: 'background-color 0.25s ease'
+                              transition: 'background-color 0.25s ease',
+                              flexShrink: 0
                             }}>
                               {/* スライダーノブ */}
                               <div style={{
@@ -2626,22 +2633,24 @@ export default function App() {
                                 boxShadow: '0 1px 3px rgba(0,0,0,0.5)'
                               }} />
                             </div>
-                            {/* ラベル */}
+                            {/* ラベル（幅を固定して位置ブレを防止） */}
                             <span style={{
+                              width: '42px',
+                              textAlign: 'center',
                               fontSize: '11.5px',
                               fontWeight: 800,
                               letterSpacing: '0.02em',
                               color: isPrivate ? '#fda4af' : '#6ee7b7'
                             }}>
-                              {isPrivate ? '🔒 非公開' : '🌐 公開中'}
+                              {isPrivate ? '非公開' : '公開'}
                             </span>
                           </div>
                         </div>
 
                         <p style={{ fontSize: '11px', margin: '4px 0 6px', color: isPrivate ? '#fda4af' : '#94a3b8' }}>
                           {isPrivate 
-                            ? '🔒 このメッセージは運営・キャストのみに届き、一般公開されません。'
-                            : '🌐 このメッセージは「みんなのカード」掲示板やタイムラインで他の観測者にも公開されます。'}
+                            ? 'このメッセージは運営・キャストのみに届き、一般公開されません。'
+                            : 'このメッセージは「みんなのカード」掲示板やタイムラインで他の観測者にも公開されます。'}
                         </p>
 
                         <textarea
@@ -2806,8 +2815,8 @@ export default function App() {
                     {answers.favoriteCast && (
                       <>
                         <dt>推し</dt>
-                        <dd style={{ color: '#ec4899', fontWeight: 700 }}>
-                          💖 {nameOf(answers.favoriteCast)}
+                        <dd style={{ color: '#ff716a', fontWeight: 700 }}>
+                          ◈ {nameOf(answers.favoriteCast)}
                         </dd>
                       </>
                     )}
@@ -2853,7 +2862,7 @@ export default function App() {
             {/* ═══ S7 完了 ═══ */}
             {step === 7 && (
               <section className="scr" id="s7" style={{ paddingTop: '24px', paddingBottom: '60px' }}>
-                {/* 🔓 全タブ解放告知バナー */}
+                {/* 全タブ解放告知バナー */}
                 <div style={{
                   maxWidth: '560px',
                   margin: '0 auto 24px',
@@ -2867,10 +2876,10 @@ export default function App() {
                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
                   animation: 'pulse 3s infinite ease-in-out'
                 }}>
-                  <span style={{ fontSize: '24px', flexShrink: 0 }}>🔓</span>
+                  <span style={{ fontSize: '20px', color: '#34d399', flexShrink: 0, fontWeight: 900 }}>◈</span>
                   <div style={{ textAlign: 'left' }}>
                     <div style={{ fontSize: '14px', fontWeight: 800, color: '#34d399', letterSpacing: '0.02em' }}>
-                      他タブ（感想ボード・キャラクター手記・カード一覧）が解放されました！
+                      他タブ（感想ボード・キャラクター手記・カード一覧）が解放されました
                     </div>
                     <div style={{ fontSize: '11.5px', color: '#cbd5e1', marginTop: '2px', lineHeight: 1.4 }}>
                       上のヘッダーメニューから、他の観測者の感想やキャラクターの極秘手記、カードアーカイブを自由にご覧いただけます。
