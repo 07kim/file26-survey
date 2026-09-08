@@ -105,8 +105,8 @@ export default function Step3SceneObservation({ formData, updateFormData, onNext
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1.5">
-                        <span className="text-[11px] font-semibold text-slate-400 tracking-wider">
-                          {item.place}
+                        <span className="text-sm sm:text-base font-extrabold text-white leading-tight text-pretty-ja">
+                          {item.title}
                         </span>
                         <div className="flex items-center gap-1 shrink-0">
                           {isSelected && (
@@ -116,11 +116,11 @@ export default function Step3SceneObservation({ formData, updateFormData, onNext
                           )}
                         </div>
                       </div>
-                      <div className="text-sm sm:text-base font-extrabold text-white leading-tight my-0.5 text-pretty-ja">
-                        {item.title}
+                      <div className="text-[11px] font-semibold text-slate-400 tracking-wider mt-0.5 mb-1">
+                        {item.place}
                       </div>
                       {item.desc && (
-                        <div className="text-xs text-slate-300 mt-1 leading-snug text-pretty-ja">
+                        <div className="text-xs text-slate-300 leading-snug text-pretty-ja">
                           {item.desc}
                         </div>
                       )}

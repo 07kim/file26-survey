@@ -1643,14 +1643,14 @@ export default function App() {
                             >
                               <span className="t">{item.time}</span>
                               <div className="b" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                                <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--fg)', lineHeight: 1.25, marginBottom: '2px', letterSpacing: '0.01em' }}>
+                                  {item.title}
+                                </span>
                                 <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--dim)', letterSpacing: '0.03em', lineHeight: 1.2 }}>
                                   {item.place}
                                 </span>
-                                <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--fg)', lineHeight: 1.25, marginTop: '2px', marginBottom: '2px', letterSpacing: '0.01em' }}>
-                                  {item.title}
-                                </span>
                                 {item.desc && (
-                                  <em style={{ fontStyle: 'normal', fontSize: '11.5px', color: 'var(--dim)', lineHeight: 1.35, marginTop: '1px' }}>
+                                  <em style={{ fontStyle: 'normal', fontSize: '11.5px', color: 'var(--dim)', lineHeight: 1.35, marginTop: '2px' }}>
                                     {item.desc}
                                   </em>
                                 )}

@@ -276,51 +276,51 @@ export const SCENES = [
     loop: "1周目",
     label: "9:04 — 最初の世界",
     items: [
-      { id: "1a", time: "0分", place: "大ホール", title: "異変", desc: "謎の現象に巻き込まれる", casts: ["yada"] },
+      { id: "1a", time: "0分", place: "大ホール", title: "異変", desc: "謎の現象に巻き込まれる", casts: [] },
       { id: "1b", time: "3分", place: "研修室4", title: "捜索", desc: "矢田を追って室内へ", casts: ["yada"] },
       { id: "1c", time: "3分", place: "研修室3", title: "暗闇", desc: "鷺坂を追って暗い部屋へ", casts: ["sagisaka"] },
       { id: "1d", time: "6分", place: "討議室4", title: "取得", desc: "下山田が“何か”を手にする", casts: ["shimoyamada"] },
-      { id: "1e", time: "7分", place: "討議室1", title: "出会い", desc: "櫻井・渡辺と、ある女の子", casts: ["sakurai", "watanabe"] },
-      { id: "1f", time: "9分", place: "研修室1", title: "団体", desc: "謎の男たちの会議", casts: ["jinnai", "higa", "inukai"] },
-      { id: "1g", time: "9分", place: "討議室3", title: "行方", desc: "謎の男女の会話", casts: ["sagisaka", "hokazono"] },
-      { id: "1h", time: "10分", place: "研修室3", title: "確認", desc: "2人の会話", casts: ["sagisaka", "nanase"] },
-      { id: "1i", time: "13分", place: "討議室2", title: "疑問", desc: "七瀬を追って", casts: ["nanase", "fukazawa"] },
-      { id: "1j", time: "13分", place: "研修室2", title: "推理", desc: "渡辺の推理", casts: ["watanabe"] },
-      { id: "1k", time: "15分", place: "研修室4", title: "衝撃", desc: "4人の接触", casts: ["yada", "sakurai", "watanabe", "shimoyamada"] },
-      { id: "1l", time: "18分", place: "研修室1", title: "独白", desc: "謎の男の独白", casts: ["jinnai"] },
+      { id: "1e", time: "7分", place: "討議室1", title: "出会い", desc: "櫻井・渡辺と、ある女の子", casts: ["sakurai", "watanabe", "nanase"] },
+      { id: "1f", time: "9分", place: "研修室1", title: "団体", desc: "謎の男たちの会議", casts: ["sagisaka", "fukazawa", "jinnai"] },
+      { id: "1g", time: "9分", place: "討議室3", title: "行方", desc: "謎の男女の会話", casts: ["higa", "hokazono"] },
+      { id: "1h", time: "10分", place: "研修室3", title: "確認", desc: "2人の会話", casts: ["shimoyamada", "yada"] },
+      { id: "1i", time: "13分", place: "討議室2", title: "疑問", desc: "七瀬を追って", casts: ["nanase"] },
+      { id: "1j", time: "13分", place: "研修室2", title: "推理", desc: "渡辺の推理", casts: ["watanabe", "sakurai"] },
+      { id: "1k", time: "15分", place: "研修室4", title: "衝撃", desc: "4人の接触", casts: ["yada", "shimoyamada"] },
+      { id: "1l", time: "18分", place: "研修室1", title: "独白", desc: "謎の男の独白", casts: ["fukazawa"] },
       { id: "1m", time: "18分", place: "討議室4", title: "ノート", desc: "鷺坂とノート", casts: ["sagisaka"] },
       { id: "1n", time: "18分", place: "研修室4", title: "将来", desc: "純粋な下山田", casts: ["shimoyamada"] },
-      { id: "1o", time: "21分", place: "討議室4", title: "森野", desc: "その場に留まる", casts: ["morino"] },
+      { id: "1o", time: "21分", place: "討議室4", title: "森野", desc: "その場に留まる", casts: ["sagisaka"] },
       { id: "1p", time: "23分", place: "研修室2", title: "微熱と心残り", desc: "櫻井と渡辺の会話", casts: ["sakurai", "watanabe"] },
-      { id: "1q", time: "25分", place: "研修室4", title: "手", desc: "…………", casts: ["yada", "shimoyamada"] },
-      { id: "1r", time: "26分", place: "研修室3", title: "完了", desc: "3人の動き", casts: ["sagisaka", "nanase", "fukazawa"] }
+      { id: "1q", time: "25分", place: "研修室4", title: "手", desc: "…………", casts: ["shimoyamada"] },
+      { id: "1r", time: "26分", place: "研修室3", title: "完了", desc: "3人の動き", casts: ["yada", "fukazawa", "jinnai"] }
     ]
   },
   {
     loop: "2周目",
     label: "再帰",
     items: [
-      { id: "2a", time: "0分", place: "大ホール", title: "再帰", desc: "再度、9時4分", casts: ["yada"] },
-      { id: "2b", time: "1分", place: "研修室1", title: "会議", desc: "扉が開いてすぐ", casts: ["jinnai", "higa", "inukai"] },
-      { id: "2c", time: "3分", place: "研修室1", title: "相談", desc: "矢田を追って", casts: ["yada"] },
-      { id: "2d", time: "3分", place: "討議室1", title: "再燃", desc: "櫻井を追う", casts: ["sakurai"] },
+      { id: "2a", time: "0分", place: "大ホール", title: "再帰", desc: "再度、9時4分", casts: [] },
+      { id: "2b", time: "1分", place: "研修室1", title: "会議", desc: "扉が開いてすぐ", casts: ["fukazawa", "hokazono", "higa"] },
+      { id: "2c", time: "3分", place: "研修室1", title: "相談", desc: "矢田を追って", casts: ["yada", "fukazawa", "hokazono", "higa"] },
+      { id: "2d", time: "3分", place: "討議室1", title: "再燃", desc: "櫻井を追う", casts: ["sakurai", "nanase", "jinnai"] },
       { id: "2e", time: "3分", place: "研修室4", title: "資料", desc: "下山田に注意して", casts: ["shimoyamada"] },
-      { id: "2f", time: "18分", place: "大ホール", title: "別れ", desc: "ついに、、、", casts: ["yada"] }
+      { id: "2f", time: "18分", place: "大ホール", title: "別れ", desc: "ついに、、、", casts: [] }
     ]
   },
   {
     loop: "3周目",
     label: "捩れた運命",
     items: [
-      { id: "3a", time: "0分", place: "大ホール", title: "捩れた運命", desc: "三たび、謎の現象に", casts: ["yada"] },
-      { id: "3b", time: "1分", place: "研修室1", title: "会議", desc: "扉が開いてすぐ", casts: ["jinnai", "higa", "inukai"] },
-      { id: "3c", time: "3分", place: "研修室1", title: "相談", desc: "矢田を追って", casts: ["yada"] },
+      { id: "3a", time: "0分", place: "大ホール", title: "捩れた運命", desc: "三たび、謎の現象に", casts: [] },
+      { id: "3b", time: "1分", place: "研修室1", title: "会議", desc: "扉が開いてすぐ", casts: ["fukazawa", "hokazono", "higa"] },
+      { id: "3c", time: "3分", place: "研修室1", title: "相談", desc: "矢田を追って", casts: ["yada", "fukazawa", "hokazono", "higa"] },
       { id: "3d", time: "3分", place: "研修室2", title: "後悔", desc: "櫻井・渡辺を追って", casts: ["sakurai", "watanabe"] },
-      { id: "3e", time: "8分", place: "討議室1", title: "招待", desc: "櫻井を追う", casts: ["sakurai"] },
-      { id: "3f", time: "11分", place: "討議室1", title: "自分の道", desc: "櫻井の結論", casts: ["sakurai"] },
+      { id: "3e", time: "8分", place: "討議室1", title: "正体", desc: "櫻井を追う", casts: ["sakurai", "nanase", "jinnai"] },
+      { id: "3f", time: "11分", place: "討議室1", title: "自分の道", desc: "櫻井の結論", casts: ["sakurai", "nanase"] },
       { id: "3g", time: "4分", place: "研修室4", title: "まさか", desc: "下山田の行く末", casts: ["shimoyamada"] },
       { id: "3h", time: "7分", place: "研修室3", title: "接触", desc: "下山田の行く末", casts: ["shimoyamada"] },
-      { id: "3i", time: "10分", place: "研修室4", title: "削除", desc: "下山田の行く末", casts: ["shimoyamada"] }
+      { id: "3i", time: "10分", place: "研修室4", title: "削除", desc: "下山田の行く末", casts: ["watanabe", "shimoyamada"] }
     ]
   }
 ];
