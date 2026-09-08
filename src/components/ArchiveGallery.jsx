@@ -306,7 +306,7 @@ function GalleryCardItem({ card, onSelect }) {
         </div>
       </div>
 
-      {/* ── 📇 観測戦歴カード一覧（コンパクトなミニカードがびっしり並ぶ高密度ギャラリー） ── */}
+      {/* ── 📇 観測戦歴カード一覧（スマホは2列、PCは程よく大きめの3列でバランスよく表示） ── */}
       {filteredCards.length === 0 ? (
         <div className="bg-slate-900/60 border border-dashed border-slate-800 rounded-3xl p-10 sm:p-14 text-center space-y-3 my-6">
           <div className="text-4xl">📂</div>
@@ -316,12 +316,7 @@ function GalleryCardItem({ card, onSelect }) {
           </p>
         </div>
       ) : (
-        <div 
-          className="grid gap-2.5 sm:gap-3.5 justify-center w-full"
-          style={{
-            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))'
-          }}
-        >
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6 justify-center w-full">
           {filteredCards.map((card, idx) => (
             <GalleryCardItem
               key={card.id || card.obsCode || idx}
