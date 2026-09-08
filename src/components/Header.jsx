@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ShieldAlert, FileText, MessageCircle, Layers, Edit3, Clock, ScrollText, Check, Award, ShieldCheck, User, LogOut, Lock, AlertCircle } from 'lucide-react';
+import { ShieldAlert, FileText, MessageCircle, Layers, Edit3, Clock, ScrollText, Check, Award, ShieldCheck, User, LogOut, Lock, Unlock, AlertCircle, Sparkles } from 'lucide-react';
 import { getStoredUser, logoutGoogleUser, parseJwt, saveGoogleUser, getActiveClientId } from '../utils/googleAuth';
 import BugReportModal from './BugReportModal';
 
@@ -10,7 +10,31 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
   const [googleUser, setGoogleUser] = useState(() => getStoredUser());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isBugModalOpen, setIsBugModalOpen] = useState(false);
+  const [unlockAnim, setUnlockAnim] = useState(false);
+  const prevUnlockedRef = useRef(isUnlocked);
   const headerGoogleBtnRef = useRef(null);
+
+  // 解放された瞬間に鍵が開いて色がつくアニメーションを発火
+  useEffect(() => {
+    if (!prevUnlockedRef.current && isUnlocked) {
+      setUnlockAnim(true);
+      const timer = setTimeout(() => {
+        setUnlockAnim(false);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+    prevUnlockedRef.current = isUnlocked;
+  }, [isUnlocked]);
+
+  // 手動トリガー（再送時など）
+  useEffect(() => {
+    const handleTriggerUnlock = () => {
+      setUnlockAnim(true);
+      setTimeout(() => setUnlockAnim(false), 3500);
+    };
+    window.addEventListener('trigger-tab-unlock-anim', handleTriggerUnlock);
+    return () => window.removeEventListener('trigger-tab-unlock-anim', handleTriggerUnlock);
+  }, []);
 
   useEffect(() => {
     const handleStorage = () => {
@@ -162,7 +186,9 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
 
         {/* 中央: メインナビゲーションタブ（スマホ時は下段全体にフィット、PC時は中央） */}
         <div className="w-full sm:w-auto flex items-center justify-center overflow-x-auto no-scrollbar py-0.5">
-          <div className="w-full sm:w-auto flex items-center justify-between sm:justify-start bg-slate-100/90 p-0.5 sm:p-1 rounded-xl border border-slate-200/90 shrink-0 gap-0.5 sm:gap-1 shadow-inner">
+          <div className={`w-full sm:w-auto flex items-center justify-between sm:justify-start bg-slate-100/90 p-0.5 sm:p-1 rounded-xl border transition-all duration-500 shrink-0 gap-0.5 sm:gap-1 shadow-inner ${
+            unlockAnim ? 'border-emerald-400 bg-emerald-50/50 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'border-slate-200/90'
+          }`}>
             <button
               type="button"
               onClick={() => setTab('survey')}
@@ -176,60 +202,87 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
               <span className="whitespace-nowrap">アンケート</span>
             </button>
 
+            {/* 感想タブ */}
             <button
               type="button"
               onClick={() => setTab('crosstalk')}
-              className={`relative flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`relative flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentTab === 'crosstalk'
                   ? 'bg-[#0284c7] text-white shadow-sm'
+                  : unlockAnim
+                  ? 'bg-sky-500/20 text-[#0284c7] border border-sky-400 shadow-[0_0_12px_rgba(2,132,199,0.4)] scale-105'
                   : isUnlocked
-                  ? 'text-slate-700 hover:text-slate-950 hover:bg-sky-50 font-bold'
+                  ? 'text-sky-800 hover:text-sky-950 hover:bg-sky-50 font-bold'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
               title={!isUnlocked ? 'アンケート送信後に解放されます' : '感想'}
             >
-              {!isUnlocked ? <Lock className="w-3 h-3 text-slate-400 shrink-0" /> : <MessageCircle className="w-3.5 h-3.5 shrink-0 text-[#0284c7]" />}
+              {!isUnlocked ? (
+                <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              ) : unlockAnim ? (
+                <Unlock className="w-3.5 h-3.5 text-sky-600 shrink-0 animate-bounce" />
+              ) : (
+                <MessageCircle className="w-3.5 h-3.5 shrink-0 text-[#0284c7]" />
+              )}
               <span className="whitespace-nowrap">感想</span>
-              {isUnlocked && currentTab !== 'crosstalk' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0284c7] animate-ping shrink-0" />
+              {isUnlocked && !unlockAnim && currentTab !== 'crosstalk' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#0284c7] shrink-0" />
               )}
             </button>
 
+            {/* キャラタブ */}
             <button
               type="button"
               onClick={() => setTab('characters')}
-              className={`relative flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`relative flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentTab === 'characters'
                   ? 'bg-[#d97706] text-white shadow-sm'
+                  : unlockAnim
+                  ? 'bg-amber-500/20 text-[#d97706] border border-amber-400 shadow-[0_0_12px_rgba(217,119,6,0.4)] scale-105'
                   : isUnlocked
-                  ? 'text-slate-700 hover:text-slate-950 hover:bg-amber-50 font-bold'
+                  ? 'text-amber-800 hover:text-amber-950 hover:bg-amber-50 font-bold'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
               title={!isUnlocked ? 'アンケート送信後に解放されます' : 'キャラ'}
             >
-              {!isUnlocked ? <Lock className="w-3 h-3 text-slate-400 shrink-0" /> : <ScrollText className="w-3.5 h-3.5 shrink-0 text-[#d97706]" />}
+              {!isUnlocked ? (
+                <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              ) : unlockAnim ? (
+                <Unlock className="w-3.5 h-3.5 text-amber-600 shrink-0 animate-bounce" />
+              ) : (
+                <ScrollText className="w-3.5 h-3.5 shrink-0 text-[#d97706]" />
+              )}
               <span className="whitespace-nowrap">キャラ</span>
-              {isUnlocked && currentTab !== 'characters' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d97706] animate-ping shrink-0" />
+              {isUnlocked && !unlockAnim && currentTab !== 'characters' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#d97706] shrink-0" />
               )}
             </button>
 
+            {/* みんなのカードタブ */}
             <button
               type="button"
               onClick={() => setTab('gallery')}
-              className={`relative flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`relative flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentTab === 'gallery'
                   ? 'bg-slate-800 text-white shadow-sm'
+                  : unlockAnim
+                  ? 'bg-emerald-500/20 text-emerald-700 border border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.4)] scale-105'
                   : isUnlocked
-                  ? 'text-slate-700 hover:text-slate-950 hover:bg-emerald-50 font-bold'
+                  ? 'text-emerald-800 hover:text-emerald-950 hover:bg-emerald-50 font-bold'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
               title={!isUnlocked ? 'アンケート送信後に解放されます' : 'みんなのカード'}
             >
-              {!isUnlocked ? <Lock className="w-3 h-3 text-slate-400 shrink-0" /> : <Layers className="w-3.5 h-3.5 shrink-0 text-emerald-600" />}
+              {!isUnlocked ? (
+                <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              ) : unlockAnim ? (
+                <Unlock className="w-3.5 h-3.5 text-emerald-600 shrink-0 animate-bounce" />
+              ) : (
+                <Layers className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+              )}
               <span className="whitespace-nowrap">みんなのカード</span>
-              {isUnlocked && currentTab !== 'gallery' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
+              {isUnlocked && !unlockAnim && currentTab !== 'gallery' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
               )}
             </button>
           </div>

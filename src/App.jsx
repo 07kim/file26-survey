@@ -18,7 +18,6 @@ import CharacterRoom from './components/CharacterRoom';
 import CardShareView from './components/CardShareView';
 import AdminDashboard from './components/AdminDashboard';
 import GoogleAuthButton from './components/GoogleAuthButton';
-import UnlockModal from './components/UnlockModal';
 import { sheetApi } from './services/sheetApi';
 import { Map as MapIcon, X as CloseIcon, ZoomIn } from 'lucide-react';
 
@@ -850,7 +849,7 @@ export default function App() {
         } catch (e) {}
         setIsSubmitting(false);
         showToast("観測記録を提出しました。他タブ（感想・キャラ手記・カード一覧）が解放されました。");
-        setShowUnlockModal(true);
+        window.dispatchEvent(new CustomEvent('trigger-tab-unlock-anim'));
         showStep(7, false);
       }, 600);
       return;
@@ -879,7 +878,7 @@ export default function App() {
       } else {
         showToast("観測記録を提出しました。他タブ（感想・キャラ手記・カード一覧）が解放されました。");
       }
-      setShowUnlockModal(true);
+      window.dispatchEvent(new CustomEvent('trigger-tab-unlock-anim'));
       showStep(7, false);
     } catch (err) {
       setFallbackData(payload);
@@ -2893,7 +2892,10 @@ export default function App() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setShowUnlockModal(true)}
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('trigger-tab-unlock-anim'));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
                       style={{
                         padding: '5px 10px',
                         fontSize: '11px',
@@ -2906,9 +2908,9 @@ export default function App() {
                         whiteSpace: 'nowrap',
                         flexShrink: 0
                       }}
-                      title="解放演出を再生"
+                      title="タブ解放アニメーションを再生"
                     >
-                      演出を再生
+                      タブ開錠演出を再生
                     </button>
                   </div>
 
@@ -3419,16 +3421,6 @@ export default function App() {
           </div>
         </div>
       )}
-
-      {/* ── 全タブ解放 演出モーダル ───────── */}
-      <UnlockModal
-        isOpen={showUnlockModal}
-        onClose={() => setShowUnlockModal(false)}
-        onNavigateTab={(targetTab) => {
-          setCurrentTab(targetTab);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-      />
     </>
   );
 }
