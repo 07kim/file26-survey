@@ -1140,8 +1140,7 @@ export default function App() {
                   type="text"
                   value={answers.realName}
                   onChange={(e) => setAnswers(prev => ({ ...prev, realName: e.target.value }))}
-                  placeholder="例）工大 太郎"
-                  maxLength="40"
+                  maxLength="50"
                 />
 
                 <h2 className="q"><span className="no">QUESTION 03 ／ 必須</span>学年を教えてください。</h2>
@@ -1163,8 +1162,7 @@ export default function App() {
                       type="text"
                       value={answers.gradeOther}
                       onChange={(e) => setAnswers(prev => ({ ...prev, gradeOther: e.target.value }))}
-                      placeholder="具体的な学年・所属を入力（例：院生、卒業生、一般、高校生など）"
-                      maxLength="30"
+                      maxLength="50"
                     />
                   </div>
                 )}
@@ -1402,7 +1400,6 @@ export default function App() {
                       rows="3"
                       value={answers.routeComment || ''}
                       onChange={(e) => setAnswers(prev => ({ ...prev, routeComment: e.target.value }))}
-                      placeholder="例: 1周目で矢田の葛藤を見ていたので、2周目で陣内側の思惑を知ったときの衝撃がすごかった / 3周目のラストへ繋がる流れが圧巻でした"
                       style={{
                         width: '100%',
                         background: 'rgba(0, 0, 0, 0.7)',
@@ -1850,7 +1847,6 @@ export default function App() {
                           return next;
                         });
                       }}
-                      placeholder="具体的なご意見をご記入ください"
                       maxLength="100"
                     />
                   </div>
@@ -1887,7 +1883,6 @@ export default function App() {
                           return next;
                         });
                       }}
-                      placeholder="具体的なご意見をご記入ください"
                       maxLength="100"
                     />
                   </div>
@@ -1938,7 +1933,6 @@ export default function App() {
                           return next;
                         });
                       }}
-                      placeholder="具体的な関わり方の希望があればご記入ください（例：楽曲制作、写真撮影、宣伝など）"
                       maxLength="100"
                     />
                   </div>
@@ -1972,7 +1966,6 @@ export default function App() {
                     const val = e.target.value;
                     setAnswers(prev => ({ ...prev, msg: val, privateImpressions: val }));
                   }}
-                  placeholder="例）演者の皆様、スタッフの皆様、素晴らしい公演を本当にありがとうございました。個人的に〇〇のシーンで涙が止まりませんでした…… / 表には書けない本音ですが、〇〇の演出が本当に刺さりました。"
                 ></textarea>
 
                 {/* Q16: 公開用の感想（タイトル & 自由記述） */}
@@ -1995,7 +1988,6 @@ export default function App() {
                     type="text"
                     value={answers.word}
                     onChange={(e) => setAnswers(prev => ({ ...prev, word: e.target.value }))}
-                    placeholder="例）鳥肌が止まらなかった / 最高のループ体験 / またあの部屋に戻りたい"
                     maxLength="80"
                   />
                 </div>
@@ -2009,7 +2001,6 @@ export default function App() {
                     rows="4"
                     value={answers.impressions}
                     onChange={(e) => setAnswers(prev => ({ ...prev, impressions: e.target.value }))}
-                    placeholder="例）研修室での掛け合いが本当にリアルで引き込まれました。最後の展開には鳥肌が立ち、今でも余韻が残っています……"
                   ></textarea>
                 </div>
 
@@ -2027,7 +2018,6 @@ export default function App() {
                   rows="3"
                   value={answers.best}
                   onChange={(e) => setAnswers(prev => ({ ...prev, best: e.target.value }))}
-                  placeholder="例）研修室2で、扉の向こうから聞こえた独白が…… / 討議室で七瀬と櫻井が出会った瞬間"
                 ></textarea>
 
                 {/* Q18: もっとこうしてほしかったこと（非公開） */}
@@ -2044,7 +2034,6 @@ export default function App() {
                   rows="3"
                   value={answers.improve}
                   onChange={(e) => setAnswers(prev => ({ ...prev, improve: e.target.value }))}
-                  placeholder="正直に書いていただけると助かります（特になければ空欄でOK）。"
                 ></textarea>
 
                 {/* ◈ 最重要観測対象（推し人物） */}
@@ -2135,7 +2124,6 @@ export default function App() {
                             }
                           }));
                         }}
-                        placeholder={`【${favP.name}】へ伝えたいこと・心奪われた瞬間・メッセージなどを自由にご記入ください`}
                         style={{
                           width: '100%',
                           background: 'rgba(0, 0, 0, 0.7)',
@@ -2223,9 +2211,8 @@ export default function App() {
                               }
                             }));
                           }}
-                          placeholder={`【${curChar.name}】へのメッセージ・感想・観測した印象など（任意）`}
-                          style={{ marginTop: '4px', fontFamily: 'var(--mincho)', color: '#fffbeb', lineHeight: 1.7 }}
-                        ></textarea>
+                        style={{ marginTop: '4px', fontFamily: 'var(--mincho)', color: '#fffbeb', lineHeight: 1.7 }}
+                      ></textarea>
                       </div>
                     );
                   })()}
