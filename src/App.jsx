@@ -681,6 +681,17 @@ export default function App() {
     return "";
   };
 
+  // 全ステップの完全バリデーション（全項目が埋まっているか検証）
+  const validateAll = () => {
+    for (let s = 1; s <= 5; s++) {
+      const err = validate(s);
+      if (err) {
+        return { step: s, message: err };
+      }
+    }
+    return null;
+  };
+
   const showStep = (n, glitch = false) => {
     setWarnMsg("");
     setStep(n);
@@ -716,16 +727,27 @@ export default function App() {
       return;
     }
 
+    if (step === 6) {
+      // 送信前に全ステップの未入力項目を網羅チェック
+      const missing = validateAll();
+      if (missing) {
+        showStep(missing.step, true);
+        setWarnMsg(missing.message);
+        showToast(`⚠️ 未回答の項目があります：SECTION 0${missing.step}（${missing.message}）`);
+        setIsShake(true);
+        setTimeout(() => setIsShake(false), 420);
+        return;
+      }
+      handleSubmit();
+      return;
+    }
+
     const miss = validate(step);
     if (miss) {
       setWarnMsg(miss);
       showToast(`⚠️ ${miss}`);
       setIsShake(true);
       setTimeout(() => setIsShake(false), 420);
-      return;
-    }
-    if (step === 6) {
-      handleSubmit();
       return;
     }
     showStep(step + 1, false);
@@ -825,6 +847,7 @@ export default function App() {
           localStorage.setItem('file26_survey_submitted_answers', JSON.stringify(payload));
         } catch (e) {}
         setIsSubmitting(false);
+        showToast("🎉 観測記録を提出しました！全タブ（感想・キャラ手記・カード一覧）が解放されました！");
         showStep(7, false);
       }, 600);
       return;
@@ -849,9 +872,9 @@ export default function App() {
       } catch (e) {}
       setIsSubmitting(false);
       if (j.isUpdate) {
-        showToast("🔄 回答記録を最新の内容に上書き更新しました！");
+        showToast("🔄 回答記録を最新の内容に更新しました！全タブが閲覧可能です");
       } else {
-        showToast("✨ 観測記録を提出しました！戦歴カードを発行します");
+        showToast("🎉 観測記録を提出しました！全タブ（感想・キャラ手記・カード一覧）が解放されました！");
       }
       showStep(7, false);
     } catch (err) {
@@ -913,6 +936,7 @@ export default function App() {
           place: item.place,
           title: item.title,
           desc: item.desc,
+          casts: item.casts || [],
           label: `${g.loop} ${item.time}／${item.place}／${item.title}`
         });
       }
@@ -1308,12 +1332,13 @@ export default function App() {
                 </div>
                 {answers.grade === "その他" && (
                   <div style={{ marginTop: "10px" }}>
-                    <input
-                      type="text"
+                    <textarea
+                      rows="2"
                       value={answers.gradeOther}
                       onChange={(e) => setAnswers(prev => ({ ...prev, gradeOther: e.target.value }))}
-                      placeholder="例）大学院生、一般、卒業生 など"
-                      maxLength="50"
+                      placeholder="例）大学院生、一般、卒業生 など（改行可）"
+                      maxLength="100"
+                      style={{ width: '100%', resize: 'vertical' }}
                     />
                   </div>
                 )}
@@ -1643,14 +1668,16 @@ export default function App() {
                             >
                               <span className="t">{item.time}</span>
                               <div className="b" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-                                <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--fg)', lineHeight: 1.25, marginBottom: '2px', letterSpacing: '0.01em' }}>
-                                  {item.title}
-                                </span>
-                                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--dim)', letterSpacing: '0.03em', lineHeight: 1.2 }}>
-                                  {item.place}
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap', marginBottom: '2px' }}>
+                                  <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--fg)', lineHeight: 1.25, letterSpacing: '0.01em' }}>
+                                    {item.title}
+                                  </span>
+                                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--dim)', letterSpacing: '0.03em' }}>
+                                    {item.place}
+                                  </span>
+                                </div>
                                 {item.desc && (
-                                  <em style={{ fontStyle: 'normal', fontSize: '11.5px', color: 'var(--dim)', lineHeight: 1.35, marginTop: '2px' }}>
+                                  <em style={{ fontStyle: 'normal', fontSize: '11.5px', color: 'var(--dim)', lineHeight: 1.35 }}>
                                     {item.desc}
                                   </em>
                                 )}
@@ -1722,12 +1749,51 @@ export default function App() {
                     className={`custom-select-trigger ${answers.missed ? 'has-val' : ''} ${isMissedDropdownOpen ? 'open' : ''}`}
                     onClick={() => setIsMissedDropdownOpen(true)}
                   >
-                    <div className="custom-select-text">
+                    <div className="custom-select-text" style={{ flex: 1, minWidth: 0 }}>
                       {answers.missed ? (
-                        <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
                           <span className="custom-select-badge">心残り</span>
-                          <span className="custom-select-label">{answers.missed}</span>
-                        </>
+                          <span className="custom-select-label" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {answers.missed}
+                          </span>
+                          {(() => {
+                            let matchedCasts = [];
+                            for (const g of SCENES) {
+                              for (const item of g.items) {
+                                if (`${g.loop} ${item.time}／${item.place}／${item.title}` === answers.missed) {
+                                  matchedCasts = item.casts || [];
+                                  break;
+                                }
+                              }
+                            }
+                            if (matchedCasts.length === 0) return null;
+                            return (
+                              <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', flexShrink: 0 }}>
+                                {matchedCasts.map((cId, idx) => {
+                                  const c = CAST_MEMBERS.find(x => x.id === cId);
+                                  if (!c || !c.avatar) return null;
+                                  return (
+                                    <img
+                                      key={cId}
+                                      src={c.avatar}
+                                      alt={c.name}
+                                      style={{
+                                        width: '26px',
+                                        height: '26px',
+                                        borderRadius: '50%',
+                                        objectFit: 'cover',
+                                        objectPosition: 'center 15%',
+                                        border: '1.5px solid rgba(255, 255, 255, 0.5)',
+                                        marginLeft: idx > 0 ? '-8px' : '0',
+                                        background: '#0f172a'
+                                      }}
+                                    />
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
+                        </div>
                       ) : (
                         <span className="custom-select-placeholder">未選択（タップして場面を選択）</span>
                       )}
@@ -1864,43 +1930,77 @@ export default function App() {
                               <div
                                 key={s.id}
                                 style={{
-                                  padding: '14px 16px',
+                                  padding: '12px 14px',
                                   borderRadius: '10px',
                                   background: isSelected ? 'linear-gradient(135deg, rgba(184, 53, 47, 0.2) 0%, rgba(30, 41, 59, 0.8) 100%)' : 'rgba(255, 255, 255, 0.04)',
                                   border: isSelected ? '1.5px solid #b8352f' : '1px solid rgba(255, 255, 255, 0.08)',
                                   cursor: 'pointer',
-                                  transition: 'all 0.15s ease'
+                                  transition: 'all 0.15s ease',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  gap: '10px'
                                 }}
                                 onClick={() => {
                                   setAnswers(prev => ({ ...prev, missed: s.label }));
                                   setIsMissedDropdownOpen(false);
                                 }}
                               >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                                  <span style={{
-                                    fontSize: '10px',
-                                    fontWeight: 800,
-                                    padding: '2px 6px',
-                                    borderRadius: '4px',
-                                    background: s.loop.includes('1') ? 'rgba(245, 158, 11, 0.2)' : s.loop.includes('2') ? 'rgba(56, 189, 248, 0.2)' : 'rgba(168, 85, 247, 0.2)',
-                                    color: s.loop.includes('1') ? '#fbbf24' : s.loop.includes('2') ? '#38bdf8' : '#c084fc',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)'
-                                  }}>
-                                    {s.loop}
-                                  </span>
-                                  <span style={{ fontSize: '11px', color: '#94a3b8', fontFamily: 'var(--mono)' }}>
-                                    {s.time}
-                                  </span>
-                                  <span style={{ fontSize: '11px', color: '#cbd5e1' }}>
-                                    {s.place}
-                                  </span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                                    <span style={{
+                                      fontSize: '10px',
+                                      fontWeight: 800,
+                                      padding: '2px 6px',
+                                      borderRadius: '4px',
+                                      background: s.loop.includes('1') ? 'rgba(245, 158, 11, 0.2)' : s.loop.includes('2') ? 'rgba(56, 189, 248, 0.2)' : 'rgba(168, 85, 247, 0.2)',
+                                      color: s.loop.includes('1') ? '#fbbf24' : s.loop.includes('2') ? '#38bdf8' : '#c084fc',
+                                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                                    }}>
+                                      {s.loop}
+                                    </span>
+                                    <span style={{ fontSize: '11px', color: '#94a3b8', fontFamily: 'var(--mono)' }}>
+                                      {s.time}
+                                    </span>
+                                    <span style={{ fontSize: '11px', color: '#cbd5e1' }}>
+                                      {s.place}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: s.desc ? '2px' : '0' }}>
+                                    {s.title}
+                                  </div>
+                                  {s.desc && (
+                                    <div style={{ fontSize: '11.5px', color: '#94a3b8', lineHeight: 1.4 }}>
+                                      {s.desc}
+                                    </div>
+                                  )}
                                 </div>
-                                <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: s.desc ? '3px' : '0' }}>
-                                  {s.title}
-                                </div>
-                                {s.desc && (
-                                  <div style={{ fontSize: '11.5px', color: '#94a3b8', lineHeight: 1.45 }}>
-                                    {s.desc}
+                                {s.casts?.length > 0 && (
+                                  <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, marginLeft: 'auto', paddingLeft: '6px' }}>
+                                    {s.casts.map((cId, idx) => {
+                                      const c = CAST_MEMBERS.find(x => x.id === cId);
+                                      if (!c || !c.avatar) return null;
+                                      return (
+                                        <img
+                                          key={cId}
+                                          src={c.avatar}
+                                          alt={c.name}
+                                          title={c.name}
+                                          style={{
+                                            width: '42px',
+                                            height: '42px',
+                                            borderRadius: '50%',
+                                            objectFit: 'cover',
+                                            objectPosition: 'center 15%',
+                                            border: '2px solid rgba(255, 255, 255, 0.6)',
+                                            marginLeft: idx > 0 ? '-14px' : '0',
+                                            background: '#0f172a',
+                                            boxShadow: '0 2px 5px rgba(0,0,0,0.5)',
+                                            zIndex: s.casts.length - idx
+                                          }}
+                                        />
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>
@@ -2026,8 +2126,8 @@ export default function App() {
                 </div>
                 {answers.length === "その他" && (
                   <div style={{ marginTop: "10px" }}>
-                    <input
-                      type="text"
+                    <textarea
+                      rows="2"
                       value={answers.lengthOther}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -2037,7 +2137,9 @@ export default function App() {
                           return next;
                         });
                       }}
-                      maxLength="100"
+                      placeholder="体験時間について具体的にご記入ください（改行可）"
+                      maxLength="200"
+                      style={{ width: '100%', resize: 'vertical' }}
                     />
                   </div>
                 )}
@@ -2062,8 +2164,8 @@ export default function App() {
                 </div>
                 {answers.again === "その他" && (
                   <div style={{ marginTop: "10px" }}>
-                    <input
-                      type="text"
+                    <textarea
+                      rows="2"
                       value={answers.againOther}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -2073,7 +2175,9 @@ export default function App() {
                           return next;
                         });
                       }}
-                      maxLength="100"
+                      placeholder="次回参加についてご記入ください（改行可）"
+                      maxLength="200"
+                      style={{ width: '100%', resize: 'vertical' }}
                     />
                   </div>
                 )}
@@ -2112,8 +2216,8 @@ export default function App() {
                 </div>
                 {(answers.futureRoles || []).includes("other") && (
                   <div style={{ marginTop: "8px", marginBottom: "12px" }}>
-                    <input
-                      type="text"
+                    <textarea
+                      rows="2"
                       value={answers.futureRolesOther}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -2123,7 +2227,9 @@ export default function App() {
                           return next;
                         });
                       }}
-                      maxLength="100"
+                      placeholder="その他の希望役割をご記入ください（改行可）"
+                      maxLength="200"
+                      style={{ width: '100%', resize: 'vertical' }}
                     />
                   </div>
                 )}
@@ -2746,7 +2852,32 @@ export default function App() {
 
             {/* ═══ S7 完了 ═══ */}
             {step === 7 && (
-              <section className="scr" id="s7" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
+              <section className="scr" id="s7" style={{ paddingTop: '24px', paddingBottom: '60px' }}>
+                {/* 🔓 全タブ解放告知バナー */}
+                <div style={{
+                  maxWidth: '560px',
+                  margin: '0 auto 24px',
+                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 78, 59, 0.25) 100%)',
+                  border: '1.5px solid rgba(52, 211, 153, 0.45)',
+                  borderRadius: '14px',
+                  padding: '14px 18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                  animation: 'pulse 3s infinite ease-in-out'
+                }}>
+                  <span style={{ fontSize: '24px', flexShrink: 0 }}>🔓</span>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#34d399', letterSpacing: '0.02em' }}>
+                      他タブ（感想ボード・キャラクター手記・カード一覧）が解放されました！
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#cbd5e1', marginTop: '2px', lineHeight: 1.4 }}>
+                      上のヘッダーメニューから、他の観測者の感想やキャラクターの極秘手記、カードアーカイブを自由にご覧いただけます。
+                    </div>
+                  </div>
+                </div>
+
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                   <div className="kicker">OBSERVATION LOG</div>
                   <div className="big" style={{ fontFamily: 'var(--gothic)', fontWeight: 800, fontSize: 'clamp(28px, 8vw, 42px)', letterSpacing: '0.06em' }}>
