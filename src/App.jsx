@@ -18,6 +18,7 @@ import CharacterRoom from './components/CharacterRoom';
 import CardShareView from './components/CardShareView';
 import AdminDashboard from './components/AdminDashboard';
 import GoogleAuthButton from './components/GoogleAuthButton';
+import UnlockModal from './components/UnlockModal';
 import { sheetApi } from './services/sheetApi';
 import { Map as MapIcon, X as CloseIcon, ZoomIn } from 'lucide-react';
 
@@ -850,6 +851,7 @@ export default function App() {
         setIsSubmitting(false);
         showToast("観測記録を提出しました。他タブ（感想・キャラ手記・カード一覧）が解放されました。");
         window.dispatchEvent(new CustomEvent('trigger-tab-unlock-anim'));
+        setShowUnlockModal(true);
         showStep(7, false);
       }, 600);
       return;
@@ -879,6 +881,7 @@ export default function App() {
         showToast("観測記録を提出しました。他タブ（感想・キャラ手記・カード一覧）が解放されました。");
       }
       window.dispatchEvent(new CustomEvent('trigger-tab-unlock-anim'));
+      setShowUnlockModal(true);
       showStep(7, false);
     } catch (err) {
       setFallbackData(payload);
@@ -2894,6 +2897,7 @@ export default function App() {
                       type="button"
                       onClick={() => {
                         window.dispatchEvent(new CustomEvent('trigger-tab-unlock-anim'));
+                        setShowUnlockModal(true);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                       style={{
@@ -3421,6 +3425,12 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* ── タブ解放 連絡小モーダル ───────── */}
+      <UnlockModal
+        isOpen={showUnlockModal}
+        onClose={() => setShowUnlockModal(false)}
+      />
     </>
   );
 }
