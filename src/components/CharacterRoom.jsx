@@ -51,17 +51,19 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
       map[c.id] = [];
     });
 
-    // 1. スプレッドシートから取得した全参加者のキャスト別メッセージ
+    // 1. スプレッドシートから取得した全参加者のキャスト別メッセージ（非公開設定は除外）
     if (serverResponses && serverResponses.length > 0) {
       serverResponses.forEach(res => {
         const comments = res.characterComments || {};
-        Object.entries(comments).forEach(([castId, text]) => {
-          if (text && text.trim() && map[castId]) {
+        Object.entries(comments).forEach(([castId, val]) => {
+          const isPrivate = typeof val === 'object' && val !== null ? !!val.isPrivate : false;
+          const text = (typeof val === 'object' && val !== null ? (val.text || '') : String(val || '')).trim();
+          if (!isPrivate && text && map[castId]) {
             map[castId].push({
               id: `res-${res.obsCode || Math.random()}-${castId}`,
               author: res.name || res.observerName || '観測者',
               grade: res.grade || '一般',
-              text: text.trim(),
+              text: text,
               likes: 0,
               time: res.timestamp ? new Date(res.timestamp).toLocaleDateString('ja-JP') : '記録済'
             });
@@ -70,18 +72,20 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
       });
     }
 
-    // 2. ユーザー自身の現在の入力がある場合
+    // 2. ユーザー自身の現在の入力がある場合（非公開設定は除外）
     if (userAnswers?.characterComments) {
-      Object.entries(userAnswers.characterComments).forEach(([castId, text]) => {
-        if (text && text.trim() && map[castId]) {
+      Object.entries(userAnswers.characterComments).forEach(([castId, val]) => {
+        const isPrivate = typeof val === 'object' && val !== null ? !!val.isPrivate : !!userAnswers.characterPrivateFlags?.[castId];
+        const text = (typeof val === 'object' && val !== null ? (val.text || '') : String(val || '')).trim();
+        if (!isPrivate && text && map[castId]) {
           // 重複チェック
-          const exists = map[castId].some(m => m.text === text.trim() && m.author === (userAnswers.name || '観測者'));
+          const exists = map[castId].some(m => m.text === text && m.author === (userAnswers.name || '観測者'));
           if (!exists) {
             map[castId].unshift({
               id: `user-self-${castId}`,
               author: userAnswers.name || '観測者 (あなた)',
               grade: userAnswers.grade || '一般',
-              text: text.trim(),
+              text: text,
               likes: 0,
               time: 'たった今',
               isMe: true

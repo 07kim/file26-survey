@@ -74,8 +74,10 @@ export default function ResultCard({ formData, onScrollToBoard, onReEdit, showCo
   const sceneRate = formData.sceneRate !== undefined ? formData.sceneRate : Math.round((sceneCount / TOTAL_SCENES) * 100);
   const obsCode = generateObsCode(loopTrack, sceneCount);
 
-  // 推しへのメッセージまたは感想・手記
-  const favMessage = favCast ? (formData.characterComments?.[favCast.id] || '') : '';
+  // 推しへのメッセージまたは感想・手記（非公開設定のものは除外）
+  const rawFavMsg = favCast ? formData.characterComments?.[favCast.id] : null;
+  const isFavMsgPrivate = typeof rawFavMsg === 'object' && rawFavMsg !== null ? !!rawFavMsg.isPrivate : !!formData.characterPrivateFlags?.[favCast?.id];
+  const favMessage = (!isFavMsgPrivate && rawFavMsg) ? (typeof rawFavMsg === 'object' ? rawFavMsg.text || '' : String(rawFavMsg)) : '';
   const displayQuote = favMessage || formData.impressions || formData.routeComment || formData.highlightScene || formData.best || formData.word || '';
 
   // 未観測ヒントの算出

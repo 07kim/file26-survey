@@ -835,12 +835,19 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                           Q20. キャスト個別へのメッセージ・手記:
                         </div>
                         <div className="space-y-2">
-                          {Object.entries(currentIndividual.characterComments).map(([cid, txt]) => {
+                          {Object.entries(currentIndividual.characterComments).map(([cid, val]) => {
                             const c = CAST_MEMBERS.find((x) => x.id === cid);
+                            const isPriv = typeof val === 'object' && val !== null ? !!val.isPrivate : false;
+                            const txt = typeof val === 'object' && val !== null ? val.text : String(val || '');
                             return (
                               <div key={cid} className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
-                                <div className="text-[11px] font-bold text-white mb-0.5">
-                                  {c ? c.name : cid}:
+                                <div className="flex items-center justify-between text-[11px] font-bold text-white mb-0.5">
+                                  <span>{c ? c.name : cid}:</span>
+                                  {isPriv ? (
+                                    <span className="text-[10px] text-rose-400 font-bold bg-rose-500/10 border border-rose-500/30 px-1.5 py-0.5 rounded">🔒 非公開</span>
+                                  ) : (
+                                    <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 rounded">🌐 公開</span>
+                                  )}
                                 </div>
                                 <div className="text-xs text-slate-300 whitespace-pre-wrap">{txt}</div>
                               </div>
@@ -1359,13 +1366,16 @@ function QuestionSummaryBlock({
             const allComments = [];
             data.forEach((d) => {
               if (d.characterComments && typeof d.characterComments === 'object') {
-                Object.entries(d.characterComments).forEach(([cid, txt]) => {
-                  if (txt && txt.trim()) {
+                Object.entries(d.characterComments).forEach(([cid, val]) => {
+                  const isPriv = typeof val === 'object' && val !== null ? !!val.isPrivate : false;
+                  const txt = (typeof val === 'object' && val !== null ? val.text : String(val || '')).trim();
+                  if (txt) {
                     const c = CAST_MEMBERS.find((x) => x.id === cid);
                     allComments.push({
                       castName: c ? c.name : cid,
                       castAvatar: c?.avatar,
                       text: txt,
+                      isPrivate: isPriv,
                       author: d.name || d.realName || '観測者',
                       obsCode: d.obsCode
                     });
@@ -1384,6 +1394,11 @@ function QuestionSummaryBlock({
                   <div className="flex items-center gap-1.5 font-bold text-rose-300">
                     {cm.castAvatar && <img src={cm.castAvatar} className="w-4 h-4 rounded-full object-cover" />}
                     <span>【{cm.castName}】へ</span>
+                    {cm.isPrivate ? (
+                      <span className="text-[10px] text-rose-400 font-bold bg-rose-500/10 border border-rose-500/30 px-1.5 py-0.2 rounded">🔒 非公開</span>
+                    ) : (
+                      <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.2 rounded">🌐 公開</span>
+                    )}
                   </div>
                   <span className="text-[10px] text-slate-500 font-mono">by {cm.author} ({cm.obsCode})</span>
                 </div>

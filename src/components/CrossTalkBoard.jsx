@@ -445,10 +445,14 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
           });
         }
 
-        // 3-C. 各キャストへのメッセージ ポスト（複数名分あればそれぞれ独立ポスト）
+        // 3-C. 各キャストへのメッセージ ポスト（複数名分あればそれぞれ独立ポスト・非公開設定は除外）
         if (resp.characterComments && typeof resp.characterComments === 'object') {
           Object.keys(resp.characterComments).forEach(castKey => {
-            const castMsg = (resp.characterComments[castKey] || '').trim();
+            const rawVal = resp.characterComments[castKey];
+            const isPrivate = typeof rawVal === 'object' && rawVal !== null ? !!rawVal.isPrivate : false;
+            const castMsg = (typeof rawVal === 'object' && rawVal !== null ? (rawVal.text || '') : String(rawVal || '')).trim();
+            // 🔒 非公開設定のメッセージは公開タイムラインに表示しない
+            if (isPrivate) return;
             if (castMsg && castMsg !== respCommentText && castMsg !== respBestText) {
               const targetCast = findCastIdByName(castKey) || castKey;
               const surveyCastPostId = `survey-${respCode}-cast-${targetCast}`;
@@ -628,7 +632,11 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
 
         if (resp.characterComments && typeof resp.characterComments === 'object') {
           Object.keys(resp.characterComments).forEach(castKey => {
-            const castMsg = (resp.characterComments[castKey] || '').trim();
+            const rawVal = resp.characterComments[castKey];
+            const isPrivate = typeof rawVal === 'object' && rawVal !== null ? !!rawVal.isPrivate : false;
+            const castMsg = (typeof rawVal === 'object' && rawVal !== null ? (rawVal.text || '') : String(rawVal || '')).trim();
+            // 🔒 非公開設定のメッセージは公開タイムラインに表示しない
+            if (isPrivate) return;
             if (castMsg && castMsg !== respCommentText && castMsg !== respBestText) {
               const targetCast = findCastIdByName(castKey) || castKey;
               const surveyCastPostId = `survey-${respCode}-cast-${targetCast}`;

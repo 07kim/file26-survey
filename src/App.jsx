@@ -61,6 +61,7 @@ const DEFAULT_ANSWERS = {
   improve: "",
   msg: "",
   characterComments: {},
+  characterPrivateFlags: {},
   favoriteCast: "",
   hp: ""
 };
@@ -717,7 +718,21 @@ export default function App() {
       word: answers.word || "",
       improve: answers.improve || "",
       msg: answers.msg || "",
-      characterComments: answers.characterComments || {},
+      characterComments: (() => {
+        const formatted = {};
+        Object.entries(answers.characterComments || {}).forEach(([cid, val]) => {
+          const text = typeof val === 'object' && val !== null ? val.text : val;
+          const isPrivate = typeof val === 'object' && val !== null ? !!val.isPrivate : !!answers.characterPrivateFlags?.[cid];
+          if (text && String(text).trim()) {
+            formatted[cid] = {
+              text: String(text).trim(),
+              isPrivate: isPrivate
+            };
+          }
+        });
+        return formatted;
+      })(),
+      characterPrivateFlags: answers.characterPrivateFlags || {},
       favoriteCast: nameOf(answers.favoriteCast),
       name: answers.name,
       realName: answers.realName,
@@ -2083,41 +2098,80 @@ export default function App() {
                   const favP = CAST_MEMBERS.find(c => c.id === answers.favoriteCast);
                   if (!favP) return null;
                   const favVal = answers.characterComments?.[favP.id] || '';
+                  const isFavPrivate = !!answers.characterPrivateFlags?.[favP.id];
 
                   return (
                     <div style={{
                       marginTop: '16px',
                       marginBottom: '24px',
                       padding: '16px 18px',
-                      background: 'linear-gradient(135deg, rgba(184, 53, 47, 0.12) 0%, rgba(15, 23, 42, 0.85) 100%)',
-                      border: '2px solid rgba(184, 53, 47, 0.55)',
+                      background: isFavPrivate 
+                        ? 'linear-gradient(135deg, rgba(71, 85, 105, 0.2) 0%, rgba(15, 23, 42, 0.9) 100%)'
+                        : 'linear-gradient(135deg, rgba(184, 53, 47, 0.12) 0%, rgba(15, 23, 42, 0.85) 100%)',
+                      border: isFavPrivate ? '2px solid rgba(148, 163, 184, 0.45)' : '2px solid rgba(184, 53, 47, 0.55)',
                       borderRadius: '12px',
-                      boxShadow: '0 8px 24px rgba(184, 53, 47, 0.2)',
+                      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
                       position: 'relative'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-                        {favP.avatar && (
-                          <img
-                            src={favP.avatar}
-                            alt=""
-                            style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', objectPosition: 'center 15%', border: '2px solid #b8352f', boxShadow: '0 0 10px rgba(184, 53, 47, 0.5)' }}
-                          />
-                        )}
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                            <span style={{ fontSize: '11px', color: '#ff716a', fontWeight: 800, letterSpacing: '0.08em' }}>
-                              ◈ 最重要観測対象への手記 ＆ メッセージ
-                            </span>
-                            <span className="badge-public" style={{ margin: 0, fontSize: '10px', padding: '1px 6px' }}>🌐 全体に公開</span>
-                          </div>
-                          <div style={{ fontSize: '17px', fontWeight: 900, color: '#fff' }}>
-                            {favP.name} <span style={{ fontSize: '12px', color: 'var(--dim)', fontWeight: 500 }}>（{favP.role}）</span>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          {favP.avatar && (
+                            <img
+                              src={favP.avatar}
+                              alt=""
+                              style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', objectPosition: 'center 15%', border: isFavPrivate ? '2px solid #64748b' : '2px solid #b8352f', boxShadow: '0 0 10px rgba(0,0,0,0.5)' }}
+                            />
+                          )}
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                              <span style={{ fontSize: '11px', color: isFavPrivate ? '#cbd5e1' : '#ff716a', fontWeight: 800, letterSpacing: '0.08em' }}>
+                                ◈ 最重要観測対象への手記 ＆ メッセージ
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '17px', fontWeight: 900, color: '#fff' }}>
+                              {favP.name} <span style={{ fontSize: '12px', color: 'var(--dim)', fontWeight: 500 }}>（{favP.role}）</span>
+                            </div>
                           </div>
                         </div>
+
+                        {/* 公開 / 非公開トグルボタン */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAnswers(prev => ({
+                              ...prev,
+                              characterPrivateFlags: {
+                                ...prev.characterPrivateFlags,
+                                [favP.id]: !prev.characterPrivateFlags?.[favP.id]
+                              }
+                            }));
+                          }}
+                          style={{
+                            cursor: 'pointer',
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            border: isFavPrivate ? '1px solid rgba(244, 63, 94, 0.5)' : '1px solid rgba(52, 211, 153, 0.5)',
+                            background: isFavPrivate ? 'rgba(225, 29, 72, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                            color: isFavPrivate ? '#fda4af' : '#6ee7b7',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          {isFavPrivate ? '🔒 非公開（運営・キャスト宛）' : '🌐 全体に公開中'}
+                        </button>
                       </div>
+
                       <p style={{ fontSize: '12px', color: '#cbd5e1', margin: '0 0 8px', lineHeight: 1.5 }}>
                         観測対象への想い、刺さったセリフ・仕草、役者さんへのメッセージなどをどうぞ。<br />
-                        <span style={{ color: '#34d399', fontWeight: 700 }}>※ この手記は発行される「戦歴ライセンスカード」やタイムラインにも大きく掲載され、他の観測者にも公開されます。</span>
+                        {isFavPrivate ? (
+                          <span style={{ color: '#fda4af', fontWeight: 700 }}>🔒 非公開設定：他の観測者には公開されず、運営・キャストのみに届きます。</span>
+                        ) : (
+                          <span style={{ color: '#34d399', fontWeight: 700 }}>🌐 公開設定：発行される「戦歴ライセンスカード」やタイムラインに掲載されます。</span>
+                        )}
                       </p>
                       <textarea
                         rows="4"
@@ -2136,7 +2190,7 @@ export default function App() {
                         style={{
                           width: '100%',
                           background: 'rgba(0, 0, 0, 0.7)',
-                          border: '1.5px solid rgba(245, 158, 11, 0.45)',
+                          border: isFavPrivate ? '1.5px solid rgba(148, 163, 184, 0.45)' : '1.5px solid rgba(245, 158, 11, 0.45)',
                           borderRadius: '8px',
                           padding: '12px 14px',
                           color: '#fffbeb',
@@ -2153,9 +2207,12 @@ export default function App() {
                 <h2 className="q">
                   <span className="no">QUESTION 20 ／ 任意</span>
                   各キャラクターへのメッセージ・観測手記。
-                  <span className="badge-cast">💌 キャスト・運営へ届きます</span>
+                  <span className="badge-public">🌐 全体に公開（個別非公開可）</span>
                 </h2>
-                <p className="help">アイコンをタップして、気になった人物へ一言どうぞ（何人に書いても・書かなくてもOK）。</p>
+                <p className="help">
+                  アイコンをタップして、気になった人物へ一言どうぞ（何人に書いても・書かなくてもOK）。<br />
+                  <span style={{ color: '#94a3b8' }}>※ 各メッセージごとに「非公開」ボタンで運営・キャスト宛のみに切り替えられます。</span>
+                </p>
                 
                 <div className="char-comment-box">
                   {/* キャスト一覧グリッドセレクター */}
@@ -2165,6 +2222,7 @@ export default function App() {
                       const hasText = !!answers.characterComments?.[p.id]?.trim();
                       const isFav = answers.favoriteCast === p.id;
                       const isTracked = answers.loop1 === p.id || answers.loop2 === p.id || answers.loop3 === p.id;
+                      const isPrivate = !!answers.characterPrivateFlags?.[p.id];
                       
                       return (
                         <div
@@ -2172,7 +2230,7 @@ export default function App() {
                           className={`char-grid-btn ${isActive ? 'active' : ''} ${hasText ? 'has-text' : ''}`}
                           onClick={() => setActiveCommentChar(p.id)}
                         >
-                          {hasText && <span className="char-grid-badge">✓</span>}
+                          {hasText && <span className="char-grid-badge">{isPrivate ? '🔒' : '✓'}</span>}
                           {p.avatar && <img src={p.avatar} alt="" />}
                           <div className="char-grid-info">
                             <span className="char-grid-name">
@@ -2181,7 +2239,7 @@ export default function App() {
                               {isTracked && !isFav && ' ◈'}
                             </span>
                             <span className="char-grid-status">
-                              {hasText ? '記入済み' : '未記入'}
+                              {hasText ? (isPrivate ? '非公開記入' : '記入済み') : '未記入'}
                             </span>
                           </div>
                         </div>
@@ -2194,9 +2252,10 @@ export default function App() {
                     const curCharId = activeCommentChar || answers.favoriteCast || answers.loop1 || 'yada';
                     const curChar = CAST_MEMBERS.find(c => c.id === curCharId) || CAST_MEMBERS[0];
                     const val = answers.characterComments?.[curCharId] || '';
+                    const isPrivate = !!answers.characterPrivateFlags?.[curCharId];
 
                     return (
-                      <div className="char-input-card">
+                      <div className="char-input-card" style={isPrivate ? { borderColor: 'rgba(244, 63, 94, 0.45)', background: 'rgba(15, 23, 42, 0.95)' } : {}}>
                         <div className="char-input-header">
                           {curChar.avatar && <img src={curChar.avatar} alt="" />}
                           <div className="char-meta">
@@ -2206,6 +2265,37 @@ export default function App() {
                             </b>
                             <span>{curChar.role || curChar.generation} ｜ {curChar.tagline}</span>
                           </div>
+
+                          {/* 公開 / 非公開トグルボタン */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAnswers(prev => ({
+                                ...prev,
+                                characterPrivateFlags: {
+                                  ...prev.characterPrivateFlags,
+                                  [curCharId]: !prev.characterPrivateFlags?.[curCharId]
+                                }
+                              }));
+                            }}
+                            style={{
+                              marginLeft: 'auto',
+                              cursor: 'pointer',
+                              padding: '3px 9px',
+                              borderRadius: '16px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              border: isPrivate ? '1px solid rgba(244, 63, 94, 0.5)' : '1px solid rgba(52, 211, 153, 0.5)',
+                              background: isPrivate ? 'rgba(225, 29, 72, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                              color: isPrivate ? '#fda4af' : '#6ee7b7',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            {isPrivate ? '🔒 非公開（運営宛）' : '🌐 公開中'}
+                          </button>
                         </div>
                         <textarea
                           rows="3"
@@ -2220,9 +2310,9 @@ export default function App() {
                               }
                             }));
                           }}
-                        placeholder={`【${curChar.name}】への一言や印象に残ったことなど`}
-                        style={{ marginTop: '4px', fontFamily: 'var(--mincho)', color: '#fffbeb', lineHeight: 1.7 }}
-                      ></textarea>
+                          placeholder={`【${curChar.name}】への一言や印象に残ったことなど`}
+                          style={{ marginTop: '4px', fontFamily: 'var(--mincho)', color: '#fffbeb', lineHeight: 1.7 }}
+                        ></textarea>
                       </div>
                     );
                   })()}
@@ -2236,9 +2326,10 @@ export default function App() {
                         <span>◈ 記入済み（{writtenKeys.length}名）：</span>
                         {writtenKeys.map(k => {
                           const c = CAST_MEMBERS.find(x => x.id === k);
+                          const isPriv = !!answers.characterPrivateFlags?.[k];
                           return (
-                            <span key={k} className="char-written-pill" onClick={() => setActiveCommentChar(k)} style={{ cursor: 'pointer' }}>
-                              {c ? c.name.split(' ')[0] : k} ✎
+                            <span key={k} className="char-written-pill" onClick={() => setActiveCommentChar(k)} style={{ cursor: 'pointer', border: isPriv ? '1px solid rgba(244,63,94,0.4)' : undefined }}>
+                              {isPriv && '🔒 '}{c ? c.name.split(' ')[0] : k} ✎
                             </span>
                           );
                         })}
