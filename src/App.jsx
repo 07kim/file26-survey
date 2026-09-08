@@ -2193,7 +2193,7 @@ export default function App() {
                   placeholder="例）導線や演出など、気になった点や改善点があればお書きください（空欄でも問題ありません）"
                 ></textarea>
 
-                {/* ◈ 最重要観測対象（推し人物） */}
+                {/* ◈ 最重要観測対象（推し人物） ＆ 推し専用手記 */}
                 <h2 className="q"><span className="no">QUESTION 19 ／ 必須</span>観測を通して、最も心惹かれた人物（推しキャラ）。</h2>
                 <p className="help">今回の体験で最も心に残った・惹かれたキャラクターを1人選んでください（戦歴カードにも刻まれます）。</p>
                 
@@ -2227,7 +2227,7 @@ export default function App() {
                   })}
                 </div>
 
-                {/* ◈ 選択された観測対象への専用手記入力枠 */}
+                {/* ◈ 最推しキャラクター専用の手記・メッセージ入力枠 */}
                 {answers.favoriteCast && (() => {
                   const favP = CAST_MEMBERS.find(c => c.id === answers.favoriteCast);
                   if (!favP) return null;
@@ -2260,7 +2260,7 @@ export default function App() {
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
                               <span style={{ fontSize: '11px', color: isFavPrivate ? '#fda4af' : '#ff716a', fontWeight: 800, letterSpacing: '0.08em' }}>
-                                ◈ 最重要観測対象への手記 ＆ メッセージ
+                                💖 最推し【{favP.name}】への手記 ＆ メッセージ
                               </span>
                             </div>
                             <div style={{ fontSize: '17px', fontWeight: 900, color: '#fff' }}>
@@ -2330,7 +2330,7 @@ export default function App() {
                       </div>
 
                       <p style={{ fontSize: '12px', color: '#cbd5e1', margin: '0 0 8px', lineHeight: 1.5 }}>
-                        観測対象への想い、刺さったセリフ・仕草、役者さんへのメッセージなどをどうぞ。<br />
+                        最推しキャストへの熱い想い、刺さったセリフ・仕草、役者さんへのメッセージなどをどうぞ。<br />
                         {isFavPrivate ? (
                           <span style={{ color: '#fda4af', fontWeight: 700 }}>🔒 現在「非公開」設定です：他の観測者には公開されず、運営・キャストのみに届きます。</span>
                         ) : (
@@ -2367,15 +2367,15 @@ export default function App() {
                   );
                 })()}
 
-                {/* ◈ キャラクター別メッセージ・感想 */}
+                {/* ◈ 他のキャラクターたちへのメッセージ・感想 */}
                 <h2 className="q">
                   <span className="no">QUESTION 20 ／ 任意</span>
-                  各キャラクターへのメッセージ・観測手記。
+                  他のキャラクターたちへのメッセージ・観測手記。
                   <span className="badge-public">🌐 全体に公開（個別非公開可）</span>
                 </h2>
                 <p className="help">
-                  アイコンをタップして、気になった人物へ一言どうぞ（何人に書いても・書かなくてもOK）。<br />
-                  <span style={{ color: '#94a3b8' }}>※ トグルスイッチでキャラクターごとに「非公開（運営宛）」へ切り替えられます。</span>
+                  推しキャラ以外の登場人物にも、心に残ったシーンや演技、伝えたい言葉があればご自由にどうぞ（何人に書いても・空欄でもOK）。<br />
+                  <span style={{ color: '#94a3b8' }}>※ 各人物ごとに「非公開（運営宛）」への切り替えが可能です。</span>
                 </p>
                 
                 <div className="char-comment-box">
@@ -2399,11 +2399,11 @@ export default function App() {
                           <div className="char-grid-info">
                             <span className="char-grid-name">
                               {p.name.split(' ')[0]}
-                              {isFav && ' ★'}
+                              {isFav && <span style={{ color: '#ff716a', fontWeight: 'bold' }}> 💖</span>}
                               {isTracked && !isFav && ' ◈'}
                             </span>
                             <span className="char-grid-status">
-                              {hasText ? (isPrivate ? '🔒非公開' : '🌐公開中') : '未記入'}
+                              {isFav ? '💖推し' : (hasText ? (isPrivate ? '🔒非公開' : '🌐公開中') : '未記入')}
                             </span>
                           </div>
                         </div>
@@ -2417,6 +2417,7 @@ export default function App() {
                     const curChar = CAST_MEMBERS.find(c => c.id === curCharId) || CAST_MEMBERS[0];
                     const val = getCommentText(answers.characterComments?.[curCharId]);
                     const isPrivate = getCommentIsPrivate(answers.characterComments?.[curCharId], answers.characterPrivateFlags?.[curCharId]);
+                    const isFav = answers.favoriteCast === curChar.id;
 
                     return (
                       <div className="char-input-card" style={isPrivate ? { borderColor: 'rgba(244, 63, 94, 0.55)', background: 'rgba(15, 23, 42, 0.95)', boxShadow: '0 4px 16px rgba(225, 29, 72, 0.15)' } : {}}>
@@ -2426,7 +2427,7 @@ export default function App() {
                             <div className="char-meta">
                               <b>
                                 {curChar.name}
-                                {answers.favoriteCast === curChar.id && <span style={{ color: '#ff716a', fontSize: '12px', marginLeft: '6px' }}>★ 観測対象</span>}
+                                {isFav && <span style={{ color: '#ff716a', fontSize: '12px', marginLeft: '6px' }}>💖 Q19推しキャラ</span>}
                               </b>
                               <span>{curChar.role || curChar.generation} ｜ {curChar.tagline}</span>
                             </div>
