@@ -52,37 +52,58 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
       map[c.id] = [];
     });
 
-    // 1. スプレッドシートから取得した全参加者のキャスト別メッセージ（非公開設定は除外）
+    const myObsCode = (userAnswers?.obsCode || '').trim();
+    const myEmail = (userAnswers?.googleEmail || '').trim().toLowerCase();
+    const myName = (userAnswers?.name || '').trim();
+
+    // 1. スプレッドシートから取得した全参加者のキャスト別メッセージ
     if (serverResponses && serverResponses.length > 0) {
       serverResponses.forEach(res => {
+        const isMe = (
+          (myObsCode && res.obsCode && res.obsCode.trim() === myObsCode) ||
+          (myEmail && res.googleEmail && res.googleEmail.trim().toLowerCase() === myEmail) ||
+          (myName && res.name && res.name.trim() === myName)
+        );
+
         const comments = res.characterComments || {};
         Object.entries(comments).forEach(([castId, val]) => {
           const isPrivate = typeof val === 'object' && val !== null ? !!val.isPrivate : false;
           const text = (typeof val === 'object' && val !== null ? (val.text || '') : String(val || '')).trim();
-          if (!isPrivate && text && map[castId]) {
+          
+          // 他人の非公開メッセージは除外、自分のメッセージは非公開でも保持
+          if ((!isPrivate || isMe) && text && map[castId]) {
             map[castId].push({
               id: `res-${res.obsCode || Math.random()}-${castId}`,
-              author: res.name || res.observerName || '観測者',
+              author: isMe ? (userAnswers.name || res.name || '観測者 (あなた)') : (res.name || res.observerName || '観測者'),
               grade: res.grade || '一般',
               text: text,
-              isPrivate: false,
+              isPrivate: isPrivate,
               likes: 0,
-              time: res.timestamp ? new Date(res.timestamp).toLocaleDateString('ja-JP') : '記録済'
+              time: res.timestamp ? new Date(res.timestamp).toLocaleDateString('ja-JP') : '記録済',
+              isMe: isMe
             });
           }
         });
       });
     }
 
-    // 2. ユーザー自身の現在の入力がある場合（非公開の場合は自分だけに表示）
+    // 2. ユーザー自身の現在の入力（userAnswers.characterComments）をマージ
     if (userAnswers?.characterComments) {
       Object.entries(userAnswers.characterComments).forEach(([castId, val]) => {
         const isPrivate = typeof val === 'object' && val !== null ? !!val.isPrivate : !!userAnswers.characterPrivateFlags?.[castId];
         const text = (typeof val === 'object' && val !== null ? (val.text || '') : String(val || '')).trim();
         if (text && map[castId]) {
-          // 重複チェック
-          const exists = map[castId].some(m => m.text === text && m.author === (userAnswers.name || '観測者'));
-          if (!exists) {
+          const existingIdx = map[castId].findIndex(m => m.isMe || m.text === text);
+          if (existingIdx !== -1) {
+            // すでに存在する場合は最新のテキスト・isPrivate・isMeで更新
+            map[castId][existingIdx] = {
+              ...map[castId][existingIdx],
+              text: text,
+              isPrivate: isPrivate,
+              isMe: true
+            };
+          } else {
+            // 新規追加
             map[castId].unshift({
               id: `user-self-${castId}`,
               author: userAnswers.name || '観測者 (あなた)',

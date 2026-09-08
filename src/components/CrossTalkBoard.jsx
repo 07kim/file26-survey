@@ -451,8 +451,8 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
             const rawVal = resp.characterComments[castKey];
             const isPrivate = typeof rawVal === 'object' && rawVal !== null ? !!rawVal.isPrivate : false;
             const castMsg = (typeof rawVal === 'object' && rawVal !== null ? (rawVal.text || '') : String(rawVal || '')).trim();
-            // 🔒 非公開設定のメッセージは公開タイムラインに表示しない
-            if (isPrivate) return;
+            // 🔒 他人の非公開メッセージは除外、自分のメッセージは非公開でも保持
+            if (isPrivate && !baseRespData.isMe) return;
             if (castMsg && castMsg !== respCommentText && castMsg !== respBestText) {
               const targetCast = findCastIdByName(castKey) || castKey;
               const surveyCastPostId = `survey-${respCode}-cast-${targetCast}`;
@@ -464,6 +464,7 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
                 favoriteCast: respFav,
                 postType: `${getDisplayName(targetCast)} へのメッセージ`,
                 message: castMsg,
+                isPrivate: isPrivate,
                 replies: serverReplies[surveyCastPostId] || []
               });
             }
@@ -635,8 +636,8 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
             const rawVal = resp.characterComments[castKey];
             const isPrivate = typeof rawVal === 'object' && rawVal !== null ? !!rawVal.isPrivate : false;
             const castMsg = (typeof rawVal === 'object' && rawVal !== null ? (rawVal.text || '') : String(rawVal || '')).trim();
-            // 🔒 非公開設定のメッセージは公開タイムラインに表示しない
-            if (isPrivate) return;
+            // 🔒 他人の非公開メッセージは除外、自分のメッセージは非公開でも保持
+            if (isPrivate && !baseRespData.isMe) return;
             if (castMsg && castMsg !== respCommentText && castMsg !== respBestText) {
               const targetCast = findCastIdByName(castKey) || castKey;
               const surveyCastPostId = `survey-${respCode}-cast-${targetCast}`;
@@ -648,6 +649,7 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
                 favoriteCast: respFav,
                 postType: `${getDisplayName(targetCast)} へのメッセージ`,
                 message: castMsg,
+                isPrivate: isPrivate,
                 replies: sReps[surveyCastPostId] || []
               });
             }
