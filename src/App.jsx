@@ -1977,7 +1977,7 @@ export default function App() {
                   <span className="badge-private">🔒 完全非公開（運営・キャストのみ）</span>
                 </h2>
                 <p className="help">
-                  他の参加者には見せたくない個人的な感想や本音、応援の言葉、運営・演者への直接のメッセージなどはこちらにご自由にお書きください。<br />
+                  他の参加者には見せたくない個人的な感想や本音、運営・キャストへのメッセージなどがあればこちらにご記入ください。<br />
                   <span style={{ color: '#94a3b8', fontWeight: 700 }}>※ 他の観測者には一切公開されず、運営・キャストのみに直接届きます。</span>
                 </p>
                 <textarea
@@ -1987,7 +1987,7 @@ export default function App() {
                     const val = e.target.value;
                     setAnswers(prev => ({ ...prev, msg: val, privateImpressions: val }));
                   }}
-                  placeholder="例）キャスト・スタッフの皆様へのお礼や、個人的に印象に残ったことなどをご自由にお書きください"
+                  placeholder="例）率直な感想や本音、メッセージなどがあればご自由にお書きください"
                 ></textarea>
 
                 {/* Q16: 公開用の感想（タイトル & 自由記述） */}
@@ -2010,7 +2010,7 @@ export default function App() {
                     type="text"
                     value={answers.word}
                     onChange={(e) => setAnswers(prev => ({ ...prev, word: e.target.value }))}
-                    placeholder="例）印象に残った一言や、感想のタイトル"
+                    placeholder="例）一言タイトルやキャッチコピー"
                     maxLength="80"
                   />
                 </div>
@@ -2024,7 +2024,7 @@ export default function App() {
                     rows="4"
                     value={answers.impressions}
                     onChange={(e) => setAnswers(prev => ({ ...prev, impressions: e.target.value }))}
-                    placeholder="例）全体の感想や物語の所感など、自由に感じたことをお書きください"
+                    placeholder="例）物語を体験して感じたことや、全体の感想などをご自由にどうぞ"
                   ></textarea>
                 </div>
 
@@ -2059,7 +2059,7 @@ export default function App() {
                   rows="3"
                   value={answers.improve}
                   onChange={(e) => setAnswers(prev => ({ ...prev, improve: e.target.value }))}
-                  placeholder="例）運営や進行面で気になった点や改善点があればお書きください（特になければ空欄でOK）"
+                  placeholder="例）導線や演出など、気になった点や改善点があればお書きください（空欄でも問題ありません）"
                 ></textarea>
 
                 {/* ◈ 最重要観測対象（推し人物） */}

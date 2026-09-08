@@ -421,7 +421,7 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
                   rows={4}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder={`${selectedChar.lastName}への感想・心揺さぶられた瞬間・応援メッセージを入力…`}
+                  placeholder={`${selectedChar.lastName}への感想や印象に残った場面などをご自由に入力…`}
                   className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
                   required
                 />
