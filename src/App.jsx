@@ -948,13 +948,36 @@ export default function App() {
         ) : currentTab === 'characters' ? (
           <div style={{ paddingTop: '10px' }}>
             <CharacterRoom
-              userAnswers={answers}
+              userAnswers={{
+                ...answers,
+                obsCode: obsCode || (localStorage.getItem('file26_survey_submitted_answers') ? JSON.parse(localStorage.getItem('file26_survey_submitted_answers')).obsCode : ''),
+                googleEmail: localStorage.getItem('file26_google_user') ? JSON.parse(localStorage.getItem('file26_google_user')).email : '',
+              }}
               serverResponses={serverData.surveys}
               onSetFavoriteCast={(newFav) => {
                 setAnswers(prev => ({ ...prev, favoriteCast: newFav }));
               }}
               onUpdateFormData={(updates) => {
                 setAnswers(prev => ({ ...prev, ...updates }));
+                // サーバーレスポンス側のキャッシュも即時更新してタイムラグをゼロにする
+                if (updates.characterComments) {
+                  setServerData(prev => ({
+                    ...prev,
+                    surveys: (prev.surveys || []).map(s => {
+                      const isMe = (obsCode && s.obsCode === obsCode) || (answers.name && s.name === answers.name);
+                      if (isMe) {
+                        return {
+                          ...s,
+                          characterComments: {
+                            ...(s.characterComments || {}),
+                            ...updates.characterComments
+                          }
+                        };
+                      }
+                      return s;
+                    })
+                  }));
+                }
               }}
             />
           </div>
