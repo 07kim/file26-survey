@@ -510,22 +510,54 @@ export default function App() {
     }
   }, []);
 
-  // 観測記録提出済みかどうかの判定（提出完了、過去提出済、共有カード閲覧、管理者）
-  const isSurveyCompleted = (
-    step === 7 ||
-    Boolean(sharedCardData) ||
-    Boolean(localStorage.getItem('file26_survey_submitted_answers')) ||
-    sessionStorage.getItem('file26_admin_auth') === 'true'
-  );
-
   const [toastAlert, setToastAlert] = useState("");
   const showToast = (msg) => {
     setToastAlert(msg);
     setTimeout(() => setToastAlert(""), 3500);
   };
 
+  // 🕵️‍♂️ 640157 入力によるバイパスアンロック判定
+  const [isBypassUnlocked, setIsBypassUnlocked] = useState(() => {
+    try {
+      return sessionStorage.getItem('file26_admin_auth') === 'true' || localStorage.getItem('file26_bypass_unlock') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  // アンケート入力欄に「640157」が入力された瞬間に検知して全タブをアンロック
+  useEffect(() => {
+    const checkPass = '640157';
+    const hasCode = Object.values(answers || {}).some(val => {
+      if (typeof val === 'string' && val.trim() === checkPass) return true;
+      if (typeof val === 'object' && val !== null) {
+        return Object.values(val).some(nested => typeof nested === 'string' && nested.trim() === checkPass);
+      }
+      return false;
+    });
+
+    if (hasCode && !isBypassUnlocked) {
+      setIsBypassUnlocked(true);
+      try {
+        sessionStorage.setItem('file26_admin_auth', 'true');
+        localStorage.setItem('file26_bypass_unlock', 'true');
+      } catch (e) {}
+      showToast("🔓 管理コード『640157』が認証されました。全タブのロックを解除しました！");
+    }
+  }, [answers, isBypassUnlocked]);
+
+  // 観測記録提出済みかどうかの判定（提出完了、過去提出済、共有カード閲覧、管理者、640157バイパス）
+  const isSurveyCompleted = (
+    step === 7 ||
+    Boolean(sharedCardData) ||
+    Boolean(localStorage.getItem('file26_survey_submitted_answers')) ||
+    isBypassUnlocked ||
+    sessionStorage.getItem('file26_admin_auth') === 'true' ||
+    localStorage.getItem('file26_bypass_unlock') === 'true'
+  );
+
   const handleTabChange = (newTab) => {
-    // 観測記録未提出時は他のタブへのアクセスを制限
+    // 観測記録未提出時は他のタブへのアクセスを制限（640157認証済みの場合はフリーアクセス）
     if (!isSurveyCompleted && !['survey', 'card', 'admin'].includes(newTab)) {
       showToast("🔒 アンケートを送信すると、感想やキャラ紹介、写真が解放されます。");
       return;
