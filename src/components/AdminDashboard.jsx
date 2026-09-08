@@ -50,10 +50,24 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
   const [filterCast, setFilterCast] = useState('ALL');
   const [selectedResponse, setSelectedResponse] = useState(null);
   
+  // 不参加除外フィルター: 'attended' (参加者・スタッフのみ) | 'all' (すべて) | 'absentOnly' (不参加のみ)
+  const [absentFilter, setAbsentFilter] = useState('attended');
+
   // 表示モード: 'summary' (質問別) | 'individual' (個別回答) | 'table' (一覧テーブル)
   const [activeTab, setActiveTab] = useState('summary');
   const [individualIndex, setIndividualIndex] = useState(0);
   const [globalChartType, setGlobalChartType] = useState('pie'); // 'pie' | 'bar'
+
+  // 不参加除外／抽出に応じたベース回答データ
+  const baseResponses = useMemo(() => {
+    if (absentFilter === 'attended') {
+      return responses.filter(r => r.role !== '不参加');
+    }
+    if (absentFilter === 'absentOnly') {
+      return responses.filter(r => r.role === '不参加');
+    }
+    return responses;
+  }, [responses, absentFilter]);
 
   // パスコード認証
   const handleLogin = (e) => {
@@ -99,7 +113,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
 
   // フィルタリング（テーブル・検索用）
   const filteredResponses = useMemo(() => {
-    return responses.filter((r) => {
+    return baseResponses.filter((r) => {
       const matchSearch =
         !searchQuery ||
         (r.obsCode && r.obsCode.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -115,11 +129,11 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
 
       return matchSearch && matchGrade && matchCast;
     });
-  }, [responses, searchQuery, filterGrade, filterCast]);
+  }, [baseResponses, searchQuery, filterGrade, filterCast]);
 
   // 統計・集計計算
   const stats = useMemo(() => {
-    const count = responses.length;
+    const count = baseResponses.length;
     if (count === 0) {
       return { count: 0, avgRate: 0, googleAuthRate: 0, topCast: 'なし', gradeDist: {}, favCastDist: {} };
     }
@@ -129,7 +143,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
     const gradeDist = {};
     const favCastDist = {};
 
-    responses.forEach((r) => {
+    baseResponses.forEach((r) => {
       const rateNum = parseInt(String(r.sceneRate || '0').replace('%', ''), 10) || 0;
       totalRate += rateNum;
       if (r.googleEmail) googleCount++;
@@ -158,19 +172,18 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
       gradeDist,
       favCastDist
     };
-  }, [responses]);
+  }, [baseResponses]);
 
   // CSVエクスポート
   const handleExportCSV = () => {
-    if (responses.length === 0) return;
+    if (baseResponses.length === 0) return;
     const headers = [
       'タイムスタンプ', '観測コード', 'ニックネーム', '実名', 'Googleメール', 'Google表示名',
       '学年', '来場区分', '事前配布物', '1周目', '2周目', '3周目', '選択ルート感想・考察', '観測シーン数', '観測率', '推しキャスト',
       '🔒 Q15 感想（非公開）', '🌐 Q16 公開用感想タイトル', '🌐 Q16 公開用全体感想(自由記述)', '🌐 Q17 忘れられない場面セリフ', '🔒 Q18 改善点要望'
     ];
 
-
-    const rows = responses.map((r) => [
+    const rows = baseResponses.map((r) => [
       `"${r.timestamp || ''}"`,
       `"${r.obsCode || ''}"`,
       `"${r.name || ''}"`,
@@ -204,7 +217,8 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `File26__094_Survey_Responses_${Date.now()}.csv`;
+    const filterSuffix = absentFilter === 'attended' ? '_attended' : (absentFilter === 'absentOnly' ? '_absent' : '_all');
+    link.download = `File26__094_Survey_Responses${filterSuffix}_${Date.now()}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -263,7 +277,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
     );
   }
 
-  const currentIndividual = responses[individualIndex] || null;
+  const currentIndividual = baseResponses[individualIndex] || null;
 
   return (
     <div className="max-w-7xl mx-auto py-5 px-3 sm:px-6 text-left animate-fadeIn">
@@ -299,7 +313,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
           <button
             type="button"
             onClick={handleExportCSV}
-            disabled={responses.length === 0}
+            disabled={baseResponses.length === 0}
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 px-3 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-emerald-950/30"
           >
             <Download className="w-3.5 h-3.5" />
@@ -316,8 +330,69 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
         </div>
       </div>
 
+      {/* ── 🎯 セグメントフィルター（不参加者の除外・切り替え） ── */}
+      <div className="bg-[#0d121f] border border-slate-800 rounded-2xl p-3 my-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-slate-400" />
+          <span className="text-xs font-bold text-slate-200">集計・表示対象:</span>
+        </div>
+        <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 w-full sm:w-auto overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => {
+              setAbsentFilter('attended');
+              setIndividualIndex(0);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+              absentFilter === 'attended'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <span>参加者・スタッフのみ</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/40 font-mono">
+              {responses.filter(r => r.role !== '不参加').length}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setAbsentFilter('all');
+              setIndividualIndex(0);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+              absentFilter === 'all'
+                ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <span>すべて</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/40 font-mono">
+              {responses.length}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setAbsentFilter('absentOnly');
+              setIndividualIndex(0);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+              absentFilter === 'absentOnly'
+                ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <span>不参加のみ</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/40 font-mono">
+              {responses.filter(r => r.role === '不参加').length}
+            </span>
+          </button>
+        </div>
+      </div>
+
       {/* 📊 KPI サマリーカード */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 my-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 my-4">
         <div className="bg-[#0d121f] border border-slate-800 rounded-xl p-3.5 shadow-lg">
           <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-xs font-bold">総回答数</span>
@@ -378,7 +453,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
             }`}
           >
             <BarChart3 className="w-4 h-4" />
-            <span>📊 質問別サマリー ({responses.length}件)</span>
+            <span>📊 質問別サマリー ({baseResponses.length}件)</span>
           </button>
 
           <button
@@ -391,7 +466,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
             }`}
           >
             <User className="w-4 h-4" />
-            <span>👤 個別回答モード</span>
+            <span>👤 個別回答モード ({baseResponses.length}件)</span>
           </button>
 
           <button
@@ -404,7 +479,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
             }`}
           >
             <FileText className="w-4 h-4" />
-            <span>📑 一覧テーブル</span>
+            <span>📑 一覧テーブル ({filteredResponses.length}件)</span>
           </button>
         </div>
       </div>
@@ -414,7 +489,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
          ═══════════════════════════════════════════════════════════════ */}
       {activeTab === 'summary' && (
         <div className="space-y-6">
-          {responses.length === 0 ? (
+          {baseResponses.length === 0 ? (
             <div className="bg-[#0d121f] border border-slate-800 rounded-2xl p-12 text-center text-slate-500">
               {isLoading ? 'スプレッドシートからデータを読み込み中…' : '回答データがまだありません'}
             </div>
@@ -456,7 +531,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q01"
                 title="本公演へのご来場区分"
                 type="choice"
-                data={responses}
+                data={baseResponses}
                 dataKey="role"
                 options={OPTIONS.role}
                 initialChartType={globalChartType}
@@ -467,7 +542,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q02"
                 title="氏名（お名前）"
                 type="text"
-                data={responses}
+                data={baseResponses}
                 dataKey="realName"
                 subKey="name"
               />
@@ -477,7 +552,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q03"
                 title="学年・所属"
                 type="choice"
-                data={responses}
+                data={baseResponses}
                 dataKey="grade"
                 options={OPTIONS.grade}
                 initialChartType={globalChartType}
@@ -488,7 +563,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q04"
                 title="事前の配布物（あらすじ・相関図）の閲覧状況"
                 type="choice"
-                data={responses}
+                data={baseResponses}
                 dataKey="prep"
                 options={OPTIONS.prep}
                 initialChartType={globalChartType}
@@ -499,7 +574,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q05"
                 title="1周目、いちばん長く追いかけた人"
                 type="choice"
-                data={responses}
+                data={baseResponses}
                 dataKey="loop1"
                 castMode={true}
                 initialChartType={globalChartType}
@@ -510,7 +585,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q06"
                 title="2周目、いちばん長く追いかけた人"
                 type="choice"
-                data={responses}
+                data={baseResponses}
                 dataKey="loop2"
                 castMode={true}
                 initialChartType={globalChartType}
@@ -521,7 +596,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q07"
                 title="3周目、いちばん長く追いかけた人"
                 type="choice"
-                data={responses}
+                data={baseResponses}
                 dataKey="loop3"
                 castMode={true}
                 initialChartType={globalChartType}
@@ -532,7 +607,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q08"
                 title="観測できた場面・シーン（複数選択）"
                 type="scenes"
-                data={responses}
+                data={baseResponses}
               />
 
               {/* Q10: 観測強度 */}
@@ -540,7 +615,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q10"
                 title="観測強度（100点満点スライダー）"
                 type="slider"
-                data={responses}
+                data={baseResponses}
                 dataKey="overall"
               />
 
@@ -549,7 +624,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q12"
                 title="体験時間について"
                 type="choice"
-                data={responses}
+                data={baseResponses}
                 dataKey="length"
                 options={OPTIONS.length}
                 initialChartType={globalChartType}
@@ -560,7 +635,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q13"
                 title="次回の参加意向"
                 type="choice"
-                data={responses}
+                data={baseResponses}
                 dataKey="again"
                 options={OPTIONS.again}
                 initialChartType={globalChartType}
@@ -571,7 +646,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q14"
                 title="次回公演での希望役割（複数選択）"
                 type="futureRoles"
-                data={responses}
+                data={baseResponses}
               />
 
               {/* Q15: 感想のひとこと（タイトル） */}
@@ -579,7 +654,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q15"
                 title="感想のひとこと（タイトル）"
                 type="text"
-                data={responses}
+                data={baseResponses}
                 dataKey="word"
                 color="indigo"
               />
@@ -589,7 +664,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q16"
                 title="全体の感想（自由記述）"
                 type="text"
-                data={responses}
+                data={baseResponses}
                 dataKey="impressions"
                 color="amber"
               />
@@ -599,7 +674,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="S03"
                 title="選択ルートの体験感想・考察（任意）"
                 type="text"
-                data={responses}
+                data={baseResponses}
                 dataKey="routeComment"
                 color="amber"
               />
@@ -609,7 +684,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q17"
                 title="いちばん忘れられない場面・セリフ"
                 type="text"
-                data={responses}
+                data={baseResponses}
                 dataKey="best"
                 color="sky"
               />
@@ -619,7 +694,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q18"
                 title="もっとこうしてほしかったこと（改善点・要望）"
                 type="text"
-                data={responses}
+                data={baseResponses}
                 dataKey="improve"
                 color="slate"
               />
@@ -629,7 +704,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q19"
                 title="最も心惹かれた人物（推しキャラ）"
                 type="choice"
-                data={responses}
+                data={baseResponses}
                 dataKey="favoriteCast"
                 castMode={true}
                 initialChartType={globalChartType}
@@ -640,7 +715,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q20"
                 title="各キャラクターへのメッセージ・観測手記"
                 type="characterComments"
-                data={responses}
+                data={baseResponses}
               />
 
               {/* Q21: 運営・キャストへの非公開メッセージ */}
@@ -648,7 +723,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                 qNo="Q21"
                 title="運営・キャストへの非公開メッセージ"
                 type="text"
-                data={responses}
+                data={baseResponses}
                 dataKey="msg"
                 color="emerald"
               />
@@ -662,7 +737,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
          ═══════════════════════════════════════════════════════════════ */}
       {activeTab === 'individual' && (
         <div className="space-y-4 max-w-4xl mx-auto">
-          {responses.length === 0 ? (
+          {baseResponses.length === 0 ? (
             <div className="bg-[#0d121f] border border-slate-800 rounded-2xl p-12 text-center text-slate-500">
               回答データがありません
             </div>
@@ -682,7 +757,7 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
 
                 <div className="text-center">
                   <div className="text-sm font-black text-white font-mono">
-                    回答 {individualIndex + 1} / {responses.length}
+                    回答 {individualIndex + 1} / {baseResponses.length}
                   </div>
                   <div className="text-[11px] text-slate-400">
                     提出日時: {currentIndividual.timestamp || '不明'}
@@ -691,8 +766,8 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
 
                 <button
                   type="button"
-                  onClick={() => setIndividualIndex((prev) => Math.min(responses.length - 1, prev + 1))}
-                  disabled={individualIndex === responses.length - 1}
+                  onClick={() => setIndividualIndex((prev) => Math.min(baseResponses.length - 1, prev + 1))}
+                  disabled={individualIndex === baseResponses.length - 1}
                   className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
                 >
                   <span>次の回答</span>
@@ -953,7 +1028,14 @@ export default function AdminDashboard({ endpoint, onBackToTop }) {
                           {r.obsCode || 'OBS-XXX'}
                         </td>
                         <td className="py-3 px-3.5 whitespace-nowrap">
-                          <div className="font-bold text-white">{r.name || '名無し'}</div>
+                          <div className="flex items-center gap-1.5 font-bold text-white">
+                            <span>{r.name || '名無し'}</span>
+                            {r.role === '不参加' && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                不参加
+                              </span>
+                            )}
+                          </div>
                           {r.realName && (
                             <div className="text-[10px] text-slate-500">（{r.realName}）</div>
                           )}

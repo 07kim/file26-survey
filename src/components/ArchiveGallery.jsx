@@ -97,14 +97,15 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
     // 1. スプレッドシートからの全参加者データ
     if (serverResponses && serverResponses.length > 0) {
       serverResponses.forEach((res, idx) => {
+        if (res.role === '不参加') return; // 不参加者のカードは全体ギャラリーから除外
         const item = mapResponseToCardData(res, idx);
         if (item.obsCode) seenCodes.add(item.obsCode);
         list.push(item);
       });
     }
 
-    // 2. ユーザー自身の最新提出データ（まだスプレッドシートに反映されていない場合の追加）
-    if (userCardData && (userCardData.observerName || userCardData.name)) {
+    // 2. ユーザー自身の最新提出データ（不参加者は全体ギャラリーには表示しない）
+    if (userCardData && userCardData.role !== '不参加' && (userCardData.observerName || userCardData.name)) {
       const uCode = userCardData.obsCode;
       if (!uCode || !seenCodes.has(uCode)) {
         const loopTrack = userCardData.loopTrack || {
@@ -163,6 +164,7 @@ export default function ArchiveGallery({ userCardData, serverResponses = [] }) {
     if (data.ok && data.surveys) {
       const list = [];
       data.surveys.forEach((res, idx) => {
+        if (res.role === '不参加') return; // 不参加者のカードは全体ギャラリーから除外
         list.push(mapResponseToCardData(res, idx));
       });
       setCards(list);

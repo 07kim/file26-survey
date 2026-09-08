@@ -209,7 +209,8 @@ export const CHARACTERS = CAST_MEMBERS;
 export const OPTIONS = {
   role: [
     "参加者",
-    "スタッフ"
+    "スタッフ",
+    "不参加"
   ],
   grade: ["1年", "2年", "3年", "4年", "その他"],
   route: [

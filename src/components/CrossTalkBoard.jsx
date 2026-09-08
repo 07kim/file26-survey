@@ -390,6 +390,7 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
     // 3. スプレッドシートのアンケート回答 (SURVEY) から感想・名場面・推し手記をそれぞれ独立ポストとして統合
     if (serverResponses && serverResponses.length > 0) {
       serverResponses.forEach((resp, idx) => {
+        if (resp.role === '不参加') return; // 不参加者の回答は全体タイムラインから除外
         const respCode = resp.obsCode || `OBS-RESP-${idx}`;
         const respFav = findCastIdByName(resp.favoriteCast) || '';
         const baseRespData = {
@@ -578,6 +579,7 @@ export default function CrossTalkBoard({ formData = {}, serverPosts = [], server
 
       // 3. SURVEY
       sResps.forEach((resp, idx) => {
+        if (resp.role === '不参加') return; // 不参加者の回答は全体タイムラインから除外
         const respCode = resp.obsCode || `OBS-RESP-${idx}`;
         const respFav = findCastIdByName(resp.favoriteCast) || '';
         const baseRespData = {

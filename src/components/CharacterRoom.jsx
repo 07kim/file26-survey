@@ -65,6 +65,9 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
           (myName && res.name && res.name.trim() === myName)
         );
 
+        // 不参加者のメッセージは全体公開から除外（本人のみ閲覧可）
+        if (res.role === '不参加' && !isMe) return;
+
         const comments = res.characterComments || {};
         Object.entries(comments).forEach(([castId, val]) => {
           const isPrivate = typeof val === 'object' && val !== null ? !!val.isPrivate : false;

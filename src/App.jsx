@@ -19,6 +19,7 @@ import CardShareView from './components/CardShareView';
 import AdminDashboard from './components/AdminDashboard';
 import GoogleAuthButton from './components/GoogleAuthButton';
 import UnlockModal from './components/UnlockModal';
+import AbsentModal from './components/AbsentModal';
 import { sheetApi } from './services/sheetApi';
 import { Map as MapIcon, X as CloseIcon, ZoomIn } from 'lucide-react';
 
@@ -314,6 +315,7 @@ export default function App() {
   const [isMissedDropdownOpen, setIsMissedDropdownOpen] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [showAbsentModal, setShowAbsentModal] = useState(false);
   const [sharedCardData, setSharedCardData] = useState(null);
   const [cloudSaveStatus, setCloudSaveStatus] = useState("saved"); // "saving" | "saved" | "idle"
 
@@ -641,8 +643,26 @@ export default function App() {
     return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
   };
 
-  // バリデーション（全項目をしっかり回答してもらう方式）
+  // 設問バッジ（不参加時は体験用として任意表示）
+  const reqBadge = (numStr) => {
+    if (answers.role === '不参加') {
+      return `QUESTION ${numStr} ／ 任意（体験用）`;
+    }
+    return `QUESTION ${numStr} ／ 必須`;
+  };
+
+  // バリデーション（全項目をしっかり回答してもらう方式。不参加時のみ氏名・学年以外任意）
   const validate = (n) => {
+    // 不参加の場合：氏名と学年のみ必須、他はすべてスキップ可能
+    if (answers.role === "不参加") {
+      if (n === 1) {
+        if (!answers.realName || !answers.realName.trim()) return "Q02：氏名（お名前）を入力してください";
+        if (!answers.grade) return "Q03：学年・所属を選択してください";
+        if (answers.grade === "その他" && (!answers.gradeOther || !answers.gradeOther.trim())) return "Q03：学年・所属の具体的内容を入力してください";
+      }
+      return "";
+    }
+
     if (n === 1) {
       if (!answers.role) return "Q01：ご来場区分が選ばれていません";
       if (!answers.realName || !answers.realName.trim()) return "Q02：氏名（お名前）を入力してください";
@@ -1303,7 +1323,7 @@ export default function App() {
 
                 <h2 className="q"><span className="no">QUESTION 01 ／ 必須</span>本公演へのご来場区分を教えてください。</h2>
                 <div className="opts grid2">
-                  {OPTIONS.role.map(v => (
+                  {OPTIONS.role.filter(v => v !== '不参加').map(v => (
                     <div
                       key={v}
                       className={`opt ${answers.role === v ? "sel" : ""}`}
@@ -1312,6 +1332,33 @@ export default function App() {
                       <span className="mk"></span><span>{v}</span>
                     </div>
                   ))}
+                </div>
+
+                {/* 不参加サブオプション */}
+                <div style={{ marginTop: '12px', marginBottom: '8px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--dim)', marginBottom: '5px' }}>
+                    ※ 当日会場に来られなかった方はこちら
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAnswers(prev => ({ ...prev, role: '不参加' }));
+                      setShowAbsentModal(true);
+                    }}
+                    style={{
+                      padding: '6px 16px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      borderRadius: '20px',
+                      border: answers.role === '不参加' ? '1.5px solid #f59e0b' : '1px dashed rgba(255,255,255,0.25)',
+                      background: answers.role === '不参加' ? 'rgba(245, 158, 11, 0.18)' : 'rgba(0,0,0,0.3)',
+                      color: answers.role === '不参加' ? '#fbbf24' : '#94a3b8',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {answers.role === '不参加' ? '✓ 不参加（体験モード選択中）' : '不参加（体験用フォーム）'}
+                  </button>
                 </div>
 
                 <h2 className="q"><span className="no">QUESTION 02 ／ 必須</span>氏名（お名前）を教えてください。</h2>
@@ -1349,7 +1396,10 @@ export default function App() {
                   </div>
                 )}
 
-                <h2 className="q"><span className="no">QUESTION 04 ／ 必須</span>事前の配布物（あらすじ・相関図）は読みましたか。</h2>
+                <h2 className="q">
+                  <span className="no">{answers.role === '不参加' ? 'QUESTION 04 ／ 任意' : 'QUESTION 04 ／ 必須'}</span>
+                  事前の配布物（あらすじ・相関図）は読みましたか。
+                </h2>
                 <div className="opts">
                   {OPTIONS.prep.map(v => (
                     <div
@@ -1374,7 +1424,7 @@ export default function App() {
                 </p>
 
                 {/* 1周目 */}
-                <h2 className="q"><span className="no">QUESTION 05 ／ 必須</span>1周目、いちばん長く追いかけた人。</h2>
+                <h2 className="q"><span className="no">{reqBadge("05")}</span>1周目、いちばん長く追いかけた人。</h2>
                 <div className="people">
                   {SELECTABLE_PEOPLE.map(p => (
                     <div
@@ -1431,7 +1481,7 @@ export default function App() {
                 </div>
 
                 {/* 2周目 */}
-                <h2 className="q"><span className="no">QUESTION 06 ／ 必須</span>2周目、いちばん長く追いかけた人。</h2>
+                <h2 className="q"><span className="no">{reqBadge("06")}</span>2周目、いちばん長く追いかけた人。</h2>
                 <div className="people">
                   {SELECTABLE_PEOPLE.map(p => (
                     <div
@@ -1485,7 +1535,7 @@ export default function App() {
                 </div>
 
                 {/* 3周目 */}
-                <h2 className="q"><span className="no">QUESTION 07 ／ 必須</span>3周目、いちばん長く追いかけた人。</h2>
+                <h2 className="q"><span className="no">{reqBadge("07")}</span>3周目、いちばん長く追いかけた人。</h2>
                 <div className="people">
                   {SELECTABLE_PEOPLE.map(p => (
                     <div
@@ -1604,7 +1654,7 @@ export default function App() {
             {step === 3 && (
               <section className="scr" id="s3">
                 <div className="sec-title">SECTION 03 ／ 観測できた場面</div>
-                <h2 className="q" style={{ marginTop: "14px" }}><span className="no">QUESTION 08 ／ 必須</span>観測できた場面をすべてチェックしてください。</h2>
+                <h2 className="q" style={{ marginTop: "14px" }}><span className="no">{reqBadge("08")}</span>観測できた場面をすべてチェックしてください。</h2>
                 <p className="help" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <span>
                     あなたが実際に「観測」できた場面をすべて選んでください。<br />
@@ -2051,7 +2101,7 @@ export default function App() {
               <section className="scr" id="s4">
                 <div className="sec-title">SECTION 04 ／ 観測強度</div>
 
-                <h2 className="q"><span className="no">QUESTION 10 ／ 必須</span>この体験に、どれだけ持っていかれましたか。</h2>
+                <h2 className="q"><span className="no">{reqBadge("10")}</span>この体験に、どれだけ持っていかれましたか。</h2>
                 <div className="slider">
                   <div className="sval">
                     {answers.overall !== undefined && answers.overall !== null ? answers.overall : 50}<small>/100</small>
@@ -2080,7 +2130,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <h2 className="q"><span className="no">QUESTION 11 ／ 必須</span>項目ごとの評価をお願いします。</h2>
+                <h2 className="q"><span className="no">{reqBadge("11")}</span>項目ごとの評価をお願いします。</h2>
                 <div className="mx">
                   {MATRIX.map(m => (
                     <div key={m.key} className="row">
@@ -2112,7 +2162,7 @@ export default function App() {
                   <span>5 ／ とてもよかった</span>
                 </div>
 
-                <h2 className="q"><span className="no">QUESTION 12 ／ 必須</span>体験時間の長さはどうでしたか。</h2>
+                <h2 className="q"><span className="no">{reqBadge("12")}</span>体験時間の長さはどうでしたか。</h2>
                 <div className="opts">
                   {OPTIONS.length.map(v => (
                     <div
@@ -2150,7 +2200,7 @@ export default function App() {
                   </div>
                 )}
 
-                <h2 className="q"><span className="no">QUESTION 13 ／ 必須</span>次に「観測者」の募集があったら。</h2>
+                <h2 className="q"><span className="no">{reqBadge("13")}</span>次に「観測者」の募集があったら。</h2>
                 <div className="opts">
                   {OPTIONS.again.map(v => (
                     <div
@@ -2189,7 +2239,7 @@ export default function App() {
                 )}
 
                 {/* ◈ 次回希望の立場・関わり方 */}
-                <h2 className="q"><span className="no">QUESTION 14 ／ 必須</span>次回もし機会があれば、どの立場で参加・関わってみたいですか。</h2>
+                <h2 className="q"><span className="no">{reqBadge("14")}</span>次回もし機会があれば、どの立場で参加・関わってみたいですか。</h2>
                 <p className="help">当てはまるもの・興味があるものをすべて選んでください（複数選択可）。</p>
                 <div className="future-roles-grid">
                   {OPTIONS.futureRoles.map(item => {
@@ -2248,7 +2298,11 @@ export default function App() {
                 <div className="sec-title">SECTION 05 ／ 記憶の断片（感想・メッセージ）</div>
                 <p className="help" style={{ marginTop: "14px" }}>
                   あなたの体験した記憶と言葉をアーカイブします。<br />
-                  <span style={{ color: '#ff716a', fontWeight: 700 }}>※ Q16（公開用の感想）、Q17、Q19（推しキャラ）は必須項目です。</span>
+                  {answers.role === '不参加' ? (
+                    <span style={{ color: '#fbbf24', fontWeight: 700 }}>※ 体験モードのため、すべての設問は任意（スキップ可能）です。</span>
+                  ) : (
+                    <span style={{ color: '#ff716a', fontWeight: 700 }}>※ Q16（公開用の感想）、Q17、Q19（推しキャラ）は必須項目です。</span>
+                  )}
                 </p>
 
                 {/* Q15: 感想（非公開）── 運営・キャストのみ */}
@@ -2273,7 +2327,7 @@ export default function App() {
 
                 {/* Q16: 公開用の感想（タイトル & 自由記述） */}
                 <h2 className="q">
-                  <span className="no">QUESTION 16 ／ 必須</span>
+                  <span className="no">{reqBadge("16")}</span>
                   公開用の感想。
                   <span className="badge-public">🌐 全体に公開</span>
                 </h2>
@@ -2311,7 +2365,7 @@ export default function App() {
 
                 {/* Q17: いちばん忘れられない場面・セリフ（公開） */}
                 <h2 className="q">
-                  <span className="no">QUESTION 17 ／ 必須</span>
+                  <span className="no">{reqBadge("17")}</span>
                   いちばん忘れられない場面・セリフ。
                   <span className="badge-public">🌐 全体に公開</span>
                 </h2>
@@ -2344,7 +2398,7 @@ export default function App() {
                 ></textarea>
 
                 {/* ◈ 最重要観測対象（推し人物） ＆ 推し専用手記 */}
-                <h2 className="q"><span className="no">QUESTION 19 ／ 必須</span>観測を通して、最も心惹かれた人物（推しキャラ）。</h2>
+                <h2 className="q"><span className="no">{reqBadge("19")}</span>観測を通して、最も心惹かれた人物（推しキャラ）。</h2>
                 <p className="help">今回の体験で最も心に残った・惹かれたキャラクターを1人選んでください（戦歴カードにも刻まれます）。</p>
                 
                 <div className="fav-char-grid">
@@ -3430,6 +3484,12 @@ export default function App() {
       <UnlockModal
         isOpen={showUnlockModal}
         onClose={() => setShowUnlockModal(false)}
+      />
+
+      {/* ── 不参加 体験案内モーダル ───────── */}
+      <AbsentModal
+        isOpen={showAbsentModal}
+        onClose={() => setShowAbsentModal(false)}
       />
     </>
   );
