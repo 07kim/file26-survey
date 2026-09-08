@@ -921,6 +921,9 @@ export default function App() {
               onSetFavoriteCast={(newFav) => {
                 setAnswers(prev => ({ ...prev, favoriteCast: newFav }));
               }}
+              onUpdateFormData={(updates) => {
+                setAnswers(prev => ({ ...prev, ...updates }));
+              }}
             />
           </div>
         ) : currentTab === 'admin' ? (

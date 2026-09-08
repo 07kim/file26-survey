@@ -3,7 +3,7 @@ import { CAST_MEMBERS } from '../data/storyData';
 import { sheetApi } from '../services/sheetApi';
 import { Heart, MessageSquare, Send, CheckCircle2, User, Flame, Award, Star, Share2, X } from 'lucide-react';
 
-export default function CharacterRoom({ userAnswers, serverResponses = [], onSetFavoriteCast }) {
+export default function CharacterRoom({ userAnswers, serverResponses = [], onSetFavoriteCast, onUpdateFormData }) {
   const [selectedCharId, setSelectedCharId] = useState(() => {
     return userAnswers?.favoriteCast || userAnswers?.loop1 || 'sakurai';
   });
@@ -24,6 +24,7 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
   const [authorName, setAuthorName] = useState(userAnswers?.name || '');
   const [authorGrade, setAuthorGrade] = useState(userAnswers?.grade || '一般');
   const [inputText, setInputText] = useState('');
+  const [isPrivateMsg, setIsPrivateMsg] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [likedMap, setLikedMap] = useState(() => {
     try {
@@ -64,6 +65,7 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
               author: res.name || res.observerName || '観測者',
               grade: res.grade || '一般',
               text: text,
+              isPrivate: false,
               likes: 0,
               time: res.timestamp ? new Date(res.timestamp).toLocaleDateString('ja-JP') : '記録済'
             });
@@ -72,12 +74,12 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
       });
     }
 
-    // 2. ユーザー自身の現在の入力がある場合（非公開設定は除外）
+    // 2. ユーザー自身の現在の入力がある場合（非公開の場合は自分だけに表示）
     if (userAnswers?.characterComments) {
       Object.entries(userAnswers.characterComments).forEach(([castId, val]) => {
         const isPrivate = typeof val === 'object' && val !== null ? !!val.isPrivate : !!userAnswers.characterPrivateFlags?.[castId];
         const text = (typeof val === 'object' && val !== null ? (val.text || '') : String(val || '')).trim();
-        if (!isPrivate && text && map[castId]) {
+        if (text && map[castId]) {
           // 重複チェック
           const exists = map[castId].some(m => m.text === text && m.author === (userAnswers.name || '観測者'));
           if (!exists) {
@@ -86,6 +88,7 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
               author: userAnswers.name || '観測者 (あなた)',
               grade: userAnswers.grade || '一般',
               text: text,
+              isPrivate: isPrivate,
               likes: 0,
               time: 'たった今',
               isMe: true
@@ -109,13 +112,13 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
 
     const myName = authorName.trim() || '観測者 (あなた)';
     const myGrade = authorGrade || '一般';
-    const nowIso = new Date().toISOString();
 
     const newMsg = {
       id: `msg-${Date.now()}`,
       author: myName,
       grade: myGrade,
       text: cleanText,
+      isPrivate: isPrivateMsg,
       likes: 1,
       time: 'たった今',
       isMe: true
@@ -126,28 +129,48 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
       [selectedCharId]: [newMsg, ...(prev[selectedCharId] || [])]
     }));
 
+    // 親コンポーネントのアンケートデータと同期
+    if (onUpdateFormData) {
+      onUpdateFormData({
+        characterComments: {
+          ...(userAnswers?.characterComments || {}),
+          [selectedCharId]: {
+            text: cleanText,
+            isPrivate: isPrivateMsg
+          }
+        },
+        characterPrivateFlags: {
+          ...(userAnswers?.characterPrivateFlags || {}),
+          [selectedCharId]: isPrivateMsg
+        }
+      });
+    }
+
     setInputText('');
     setSubmitSuccess(true);
 
-    // クラウド（時空通信 / CROSSTALKシート）への永続化保存
-    try {
-      await sheetApi.postCrossTalk({
-        name: myName,
-        grade: myGrade,
-        category: 'cast_note',
-        targetRoutes: [selectedCharId],
-        targetCast: selectedCharId,
-        message: cleanText,
-        stamps: { resonance: 1, chills: 0 },
-        stampUsers: { resonance: [myName], chills: [] }
-      });
-    } catch (err) {
-      console.warn('Failed to post cast message to server:', err);
+    // 公開設定の場合のみクラウド（時空通信 / CROSSTALKシート）への永続化保存
+    if (!isPrivateMsg) {
+      try {
+        await sheetApi.postCrossTalk({
+          name: myName,
+          grade: myGrade,
+          category: 'cast_note',
+          targetRoutes: [selectedCharId],
+          targetCast: selectedCharId,
+          message: cleanText,
+          stamps: { resonance: 1, chills: 0 },
+          stampUsers: { resonance: [myName], chills: [] }
+        });
+      } catch (err) {
+        console.warn('Failed to post cast message to server:', err);
+      }
     }
 
     setTimeout(() => {
       setSubmitSuccess(false);
       setIsModalOpen(false);
+      setIsPrivateMsg(false);
     }, 1200);
   };
 
@@ -303,11 +326,16 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
               >
                 <div>
                   <div className="flex items-center justify-between text-[11px] mb-2">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="font-bold text-white">{msg.author}</span>
                       <span className="text-[10px] font-mono text-slate-400">({msg.grade})</span>
                       {msg.isMe && (
                         <span className="text-[9px] bg-amber-500 text-black font-black px-1.5 rounded">YOU</span>
+                      )}
+                      {msg.isPrivate && (
+                        <span className="text-[9px] bg-amber-950/80 border border-amber-600/60 text-amber-300 font-bold px-1.5 py-0.2 rounded-full flex items-center gap-0.5">
+                          🔒 非公開(運営・キャスト宛)
+                        </span>
                       )}
                     </div>
                     <span className="text-[10px] font-mono text-slate-500">{msg.time}</span>
@@ -399,6 +427,56 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
                 />
               </div>
 
+              {/* ── 公開 / 非公開 トグルスイッチ ── */}
+              <div className={`p-3 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-3 ${
+                isPrivateMsg 
+                  ? 'bg-amber-950/20 border-amber-500/40 ring-1 ring-amber-500/20' 
+                  : 'bg-slate-950/90 border-slate-800'
+              }`}>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 transition-colors ${
+                    isPrivateMsg ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'
+                  }`}>
+                    {isPrivateMsg ? '🔒' : '🌐'}
+                  </div>
+                  <div className="min-w-0 text-left">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-bold text-white">
+                        {isPrivateMsg ? '非公開で送る（運営・キャスト宛）' : '全体公開で送る'}
+                      </span>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${
+                        isPrivateMsg ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'
+                      }`}>
+                        {isPrivateMsg ? '🔒 非公開' : '🌐 公開'}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">
+                      {isPrivateMsg 
+                        ? '全体掲示板には出ず、運営とキャストのみに届けられます' 
+                        : 'このキャラの部屋や時空通信ボードに掲載されます'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 視覚的トグルスイッチ */}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isPrivateMsg}
+                  onClick={() => setIsPrivateMsg(!isPrivateMsg)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    isPrivateMsg ? 'bg-amber-500' : 'bg-slate-700'
+                  }`}
+                  title={isPrivateMsg ? 'クリックして公開に変更' : 'クリックして非公開に変更'}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                      isPrivateMsg ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
               <div className="flex items-center justify-end gap-2 pt-1">
                 <button
                   type="button"
@@ -411,7 +489,7 @@ export default function CharacterRoom({ userAnswers, serverResponses = [], onSet
                   type="submit"
                   className="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow hover:brightness-110 cursor-pointer"
                 >
-                  {submitSuccess ? '送信しました！' : '電報を投函する'}
+                  {submitSuccess ? '送信しました！' : (isPrivateMsg ? '🔒 非公開で投函する' : '🌐 電報を投函する')}
                 </button>
               </div>
             </form>
