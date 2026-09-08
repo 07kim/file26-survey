@@ -17,6 +17,7 @@ import CrossTalkBoard from './components/CrossTalkBoard';
 import CharacterRoom from './components/CharacterRoom';
 import CardShareView from './components/CardShareView';
 import AdminDashboard from './components/AdminDashboard';
+import GoogleAuthButton from './components/GoogleAuthButton';
 import { sheetApi } from './services/sheetApi';
 import { Map as MapIcon, X as CloseIcon, ZoomIn } from 'lucide-react';
 
@@ -2522,6 +2523,50 @@ export default function App() {
                 <h2 className="q"><span className="no">FINAL</span>この内容で提出し、戦歴カードを発行します。</h2>
                 <div className="code">{obsCode}</div>
 
+                {/* 🔐 Google連携促進・認証カード */}
+                <div style={{
+                  background: 'rgba(15, 23, 42, 0.65)',
+                  border: '1px solid rgba(59, 130, 246, 0.35)',
+                  borderRadius: '10px',
+                  padding: '14px 16px',
+                  marginBottom: '20px',
+                  backdropFilter: 'blur(8px)',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.2)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '15px' }}>🛡️</span>
+                      <b style={{ fontSize: '13.5px', color: '#f8fafc', letterSpacing: '0.03em' }}>
+                        Google アカウント連携（推奨）
+                      </b>
+                    </div>
+                    <span style={{
+                      fontSize: '10px',
+                      color: '#60a5fa',
+                      background: 'rgba(59, 130, 246, 0.15)',
+                      border: '1px solid rgba(59, 130, 246, 0.35)',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontWeight: 'bold',
+                      letterSpacing: '0.02em'
+                    }}>
+                      公式認証バッジ付与
+                    </span>
+                  </div>
+                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', lineHeight: 1.55, color: '#94a3b8' }}>
+                    連携すると発行される戦歴カードに「Google認証済」バッジが付与され、提出した観測ログの安全な保護や次回以降の自動入力が可能になります。
+                  </p>
+                  
+                  <GoogleAuthButton
+                    currentObsCode={obsCode}
+                    onAuthSuccess={(user) => {
+                      if (user && user.name && !answers.name) {
+                        setAnswers(prev => ({ ...prev, name: user.name }));
+                      }
+                    }}
+                  />
+                </div>
+
                 {/* 観測者名設定（ダークテーマ統一） */}
                 <div style={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: '8px', padding: '14px 16px', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -2544,6 +2589,26 @@ export default function App() {
                   <dl>
                     <dt>カード名義</dt><dd><b>{answers.name || '匿名'}</b> <span style={{ color: 'var(--dim)' }}>[{answers.grade || 'その他'}]</span></dd>
                     <dt>回答者氏名</dt><dd>{answers.realName ? `${answers.realName}（非公開）` : '—'}</dd>
+                    <dt>Google連携</dt>
+                    <dd>
+                      {(() => {
+                        try {
+                          const stored = localStorage.getItem('file26_google_user');
+                          if (stored) {
+                            const u = JSON.parse(stored);
+                            return (
+                              <span style={{ color: '#34d399', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <span>🛡️ 連携済み</span>
+                                <span style={{ fontSize: '11px', color: 'var(--dim)', fontWeight: 'normal' }}>
+                                  ({u.name || u.email})
+                                </span>
+                              </span>
+                            );
+                          }
+                        } catch (e) {}
+                        return <span style={{ color: 'var(--dim)' }}>未連携（任意）</span>;
+                      })()}
+                    </dd>
                     <dt>区分</dt><dd>{answers.role || "—"}</dd>
                     <dt>追跡</dt>
                     <dd>
