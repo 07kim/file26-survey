@@ -1647,7 +1647,7 @@ export default function App() {
                                 <em>{item.desc}</em>
                               </span>
                               {item.casts?.length > 0 && (
-                                <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', alignSelf: 'center', flexShrink: 0, paddingLeft: '6px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', alignSelf: 'center', flexShrink: 0, paddingLeft: '8px' }}>
                                   {item.casts.map((cId, idx) => {
                                     const c = CAST_MEMBERS.find(x => x.id === cId);
                                     if (!c || !c.avatar) return null;
@@ -1658,15 +1658,15 @@ export default function App() {
                                         alt={c.name}
                                         title={c.name}
                                         style={{
-                                          width: '26px',
-                                          height: '26px',
+                                          width: '32px',
+                                          height: '32px',
                                           borderRadius: '50%',
                                           objectFit: 'cover',
                                           objectPosition: 'center 15%',
-                                          border: '1.5px solid rgba(255, 255, 255, 0.5)',
-                                          marginLeft: idx > 0 ? '-8px' : '0',
+                                          border: '2px solid rgba(255, 255, 255, 0.6)',
+                                          marginLeft: idx > 0 ? '-10px' : '0',
                                           background: '#0f172a',
-                                          boxShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                                          boxShadow: '0 2px 5px rgba(0,0,0,0.5)',
                                           zIndex: item.casts.length - idx
                                         }}
                                       />
