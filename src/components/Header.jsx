@@ -179,49 +179,58 @@ export default function Header({ currentStep, totalSteps, currentTab, setTab, on
             <button
               type="button"
               onClick={() => setTab('crosstalk')}
-              className={`flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`relative flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentTab === 'crosstalk'
                   ? 'bg-[#0284c7] text-white shadow-sm'
                   : isUnlocked
-                  ? 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                  ? 'text-slate-700 hover:text-slate-950 hover:bg-sky-50 font-bold'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
               title={!isUnlocked ? 'アンケート送信後に解放されます' : '感想'}
             >
-              {!isUnlocked ? <Lock className="w-3 h-3 text-slate-400 shrink-0" /> : <MessageCircle className="w-3.5 h-3.5 shrink-0" />}
+              {!isUnlocked ? <Lock className="w-3 h-3 text-slate-400 shrink-0" /> : <MessageCircle className="w-3.5 h-3.5 shrink-0 text-[#0284c7]" />}
               <span className="whitespace-nowrap">感想</span>
+              {isUnlocked && currentTab !== 'crosstalk' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#0284c7] animate-ping shrink-0" />
+              )}
             </button>
 
             <button
               type="button"
               onClick={() => setTab('characters')}
-              className={`flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`relative flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentTab === 'characters'
                   ? 'bg-[#d97706] text-white shadow-sm'
                   : isUnlocked
-                  ? 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                  ? 'text-slate-700 hover:text-slate-950 hover:bg-amber-50 font-bold'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
               title={!isUnlocked ? 'アンケート送信後に解放されます' : 'キャラ'}
             >
-              {!isUnlocked ? <Lock className="w-3 h-3 text-slate-400 shrink-0" /> : <ScrollText className="w-3.5 h-3.5 shrink-0" />}
+              {!isUnlocked ? <Lock className="w-3 h-3 text-slate-400 shrink-0" /> : <ScrollText className="w-3.5 h-3.5 shrink-0 text-[#d97706]" />}
               <span className="whitespace-nowrap">キャラ</span>
+              {isUnlocked && currentTab !== 'characters' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#d97706] animate-ping shrink-0" />
+              )}
             </button>
 
             <button
               type="button"
               onClick={() => setTab('gallery')}
-              className={`flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`relative flex-1 sm:flex-none px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentTab === 'gallery'
                   ? 'bg-slate-800 text-white shadow-sm'
                   : isUnlocked
-                  ? 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                  ? 'text-slate-700 hover:text-slate-950 hover:bg-emerald-50 font-bold'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
               title={!isUnlocked ? 'アンケート送信後に解放されます' : 'みんなのカード'}
             >
-              {!isUnlocked ? <Lock className="w-3 h-3 text-slate-400 shrink-0" /> : <Layers className="w-3.5 h-3.5 shrink-0" />}
+              {!isUnlocked ? <Lock className="w-3 h-3 text-slate-400 shrink-0" /> : <Layers className="w-3.5 h-3.5 shrink-0 text-emerald-600" />}
               <span className="whitespace-nowrap">みんなのカード</span>
+              {isUnlocked && currentTab !== 'gallery' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
+              )}
             </button>
           </div>
         </div>

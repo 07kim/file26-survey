@@ -18,6 +18,7 @@ import CharacterRoom from './components/CharacterRoom';
 import CardShareView from './components/CardShareView';
 import AdminDashboard from './components/AdminDashboard';
 import GoogleAuthButton from './components/GoogleAuthButton';
+import UnlockModal from './components/UnlockModal';
 import { sheetApi } from './services/sheetApi';
 import { Map as MapIcon, X as CloseIcon, ZoomIn } from 'lucide-react';
 
@@ -312,6 +313,7 @@ export default function App() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [isMissedDropdownOpen, setIsMissedDropdownOpen] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [sharedCardData, setSharedCardData] = useState(null);
   const [cloudSaveStatus, setCloudSaveStatus] = useState("saved"); // "saving" | "saved" | "idle"
 
@@ -848,6 +850,7 @@ export default function App() {
         } catch (e) {}
         setIsSubmitting(false);
         showToast("観測記録を提出しました。他タブ（感想・キャラ手記・カード一覧）が解放されました。");
+        setShowUnlockModal(true);
         showStep(7, false);
       }, 600);
       return;
@@ -876,6 +879,7 @@ export default function App() {
       } else {
         showToast("観測記録を提出しました。他タブ（感想・キャラ手記・カード一覧）が解放されました。");
       }
+      setShowUnlockModal(true);
       showStep(7, false);
     } catch (err) {
       setFallbackData(payload);
@@ -2862,27 +2866,130 @@ export default function App() {
             {/* ═══ S7 完了 ═══ */}
             {step === 7 && (
               <section className="scr" id="s7" style={{ paddingTop: '24px', paddingBottom: '60px' }}>
-                {/* 全タブ解放告知バナー */}
-                <div style={{
-                  maxWidth: '560px',
-                  margin: '0 auto 24px',
-                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 78, 59, 0.25) 100%)',
-                  border: '1.5px solid rgba(52, 211, 153, 0.45)',
-                  borderRadius: '14px',
-                  padding: '14px 18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-                  animation: 'pulse 3s infinite ease-in-out'
-                }}>
-                  <span style={{ fontSize: '20px', color: '#34d399', flexShrink: 0, fontWeight: 900 }}>◈</span>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#34d399', letterSpacing: '0.02em' }}>
-                      他タブ（感想ボード・キャラクター手記・カード一覧）が解放されました
+                {/* 全タブ解放告知バナー ＆ 直通アクセスカード群 */}
+                <div style={{ maxWidth: '560px', margin: '0 auto 28px', textAlign: 'left' }}>
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 78, 59, 0.25) 100%)',
+                    border: '1.5px solid rgba(52, 211, 153, 0.45)',
+                    borderRadius: '14px',
+                    padding: '14px 18px',
+                    marginBottom: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '20px', color: '#34d399', flexShrink: 0, fontWeight: 900 }}>◈</span>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#34d399', letterSpacing: '0.02em' }}>
+                          全アーカイブ（感想・キャラ手記・カード一覧）が解放されました
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#cbd5e1', marginTop: '2px', lineHeight: 1.4 }}>
+                          他観測者のデータや極秘手記を閲覧できます。下のカードから直接移動できます。
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '11.5px', color: '#cbd5e1', marginTop: '2px', lineHeight: 1.4 }}>
-                      上のヘッダーメニューから、他の観測者の感想やキャラクターの極秘手記、カードアーカイブを自由にご覧いただけます。
+                    <button
+                      type="button"
+                      onClick={() => setShowUnlockModal(true)}
+                      style={{
+                        padding: '5px 10px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        background: 'rgba(52, 211, 153, 0.2)',
+                        border: '1px solid rgba(52, 211, 153, 0.5)',
+                        color: '#6ee7b7',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0
+                      }}
+                      title="解放演出を再生"
+                    >
+                      演出を再生
+                    </button>
+                  </div>
+
+                  {/* 3つの解放コンテンツ直通カード */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
+                    <div
+                      onClick={() => {
+                        setCurrentTab('crosstalk');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      style={{
+                        background: 'rgba(2, 132, 199, 0.12)',
+                        border: '1px solid rgba(2, 132, 199, 0.4)',
+                        borderRadius: '10px',
+                        padding: '12px 14px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                      }}
+                    >
+                      <div style={{ fontSize: '10px', fontWeight: 800, color: '#38bdf8', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                        PROTOCOL 01
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>
+                        感想・考察ボード →
+                      </div>
+                      <div style={{ fontSize: '10.5px', color: '#94a3b8', lineHeight: 1.3 }}>
+                        他観測者の生の声・タイムライン
+                      </div>
+                    </div>
+
+                    <div
+                      onClick={() => {
+                        setCurrentTab('characters');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      style={{
+                        background: 'rgba(217, 119, 6, 0.12)',
+                        border: '1px solid rgba(217, 119, 6, 0.4)',
+                        borderRadius: '10px',
+                        padding: '12px 14px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                      }}
+                    >
+                      <div style={{ fontSize: '10px', fontWeight: 800, color: '#fbbf24', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                        PROTOCOL 02
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>
+                        キャラクター手記 →
+                      </div>
+                      <div style={{ fontSize: '10.5px', color: '#94a3b8', lineHeight: 1.3 }}>
+                        登場人物の裏記録・独白
+                      </div>
+                    </div>
+
+                    <div
+                      onClick={() => {
+                        setCurrentTab('gallery');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      style={{
+                        background: 'rgba(16, 185, 129, 0.12)',
+                        border: '1px solid rgba(16, 185, 129, 0.4)',
+                        borderRadius: '10px',
+                        padding: '12px 14px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                      }}
+                    >
+                      <div style={{ fontSize: '10px', fontWeight: 800, color: '#34d399', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                        PROTOCOL 03
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>
+                        みんなのカード →
+                      </div>
+                      <div style={{ fontSize: '10.5px', color: '#94a3b8', lineHeight: 1.3 }}>
+                        全観測者の戦歴ライセンス一覧
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3312,6 +3419,16 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* ── 全タブ解放 演出モーダル ───────── */}
+      <UnlockModal
+        isOpen={showUnlockModal}
+        onClose={() => setShowUnlockModal(false)}
+        onNavigateTab={(targetTab) => {
+          setCurrentTab(targetTab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
     </>
   );
 }
